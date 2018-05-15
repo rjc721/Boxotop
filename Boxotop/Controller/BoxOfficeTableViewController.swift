@@ -34,18 +34,17 @@ class BoxOfficeTableViewController: UITableViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
     
-    
     var movies = ["Avengers: Infinity War", "Breaking In", "Life of the party", "Overboard", "A Quiet Place", "I Feel Pretty", "Rampage", "Tully", "Black Panther", "A Wrinkle In Time"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.rowHeight = 80.0
         
+        
         guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
         navBar.barTintColor = navBarGreen
         navBar.tintColor = UIColor.flatWhite()
         searchBar.barTintColor = navBarGreen
-        refreshButton.tintColor = UIColor.black
         
         if realm.isEmpty {
             SVProgressHUD.show()    //Show loading to user

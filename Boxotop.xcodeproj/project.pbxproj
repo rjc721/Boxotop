@@ -14,6 +14,7 @@
 		1804757720AA515B0090DE98 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1804757520AA515B0090DE98 /* LaunchScreen.storyboard */; };
 		1804758120AA52BB0090DE98 /* Film.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1804758020AA52BB0090DE98 /* Film.swift */; };
 		1804758420AA64B10090DE98 /* BoxOfficeTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1804758320AA64B10090DE98 /* BoxOfficeTableViewController.swift */; };
+		1879B17A20AB9889007D6B72 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B17920AB9889007D6B72 /* WebViewController.swift */; };
 		1F06D5502E3FB1289683BC07 /* Pods_Boxotop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +28,7 @@
 		1804757820AA515B0090DE98 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1804758020AA52BB0090DE98 /* Film.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Film.swift; sourceTree = "<group>"; };
 		1804758320AA64B10090DE98 /* BoxOfficeTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxOfficeTableViewController.swift; sourceTree = "<group>"; };
+		1879B17920AB9889007D6B72 /* WebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Boxotop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE160F9E987AC24897A68BBC /* Pods-Boxotop.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.release.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.release.xcconfig"; sourceTree = "<group>"; };
 		E3E78211947423061F1DA089 /* Pods-Boxotop.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.debug.xcconfig"; sourceTree = "<group>"; };
@@ -89,6 +91,7 @@
 			children = (
 				1804756E20AA51580090DE98 /* FilmViewController.swift */,
 				1804758320AA64B10090DE98 /* BoxOfficeTableViewController.swift */,
+				1879B17920AB9889007D6B72 /* WebViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -243,6 +246,7 @@
 				1804756F20AA51580090DE98 /* FilmViewController.swift in Sources */,
 				1804758420AA64B10090DE98 /* BoxOfficeTableViewController.swift in Sources */,
 				1804758120AA52BB0090DE98 /* Film.swift in Sources */,
+				1879B17A20AB9889007D6B72 /* WebViewController.swift in Sources */,
 				1804756D20AA51580090DE98 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

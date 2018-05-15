@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import RealmSwift
 
 class FilmViewController: UIViewController {
     
@@ -19,6 +20,9 @@ class FilmViewController: UIViewController {
     @IBOutlet weak var castTextLabel: UILabel!
     @IBOutlet weak var directorTextLabel: UILabel!
     @IBOutlet weak var writerTextLabel: UILabel!
+    @IBOutlet weak var tomatoRatingLabel: UILabel!
+    @IBOutlet weak var imdbRatingLabel: UILabel!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,6 +34,8 @@ class FilmViewController: UIViewController {
             castTextLabel.text = film.cast
             directorTextLabel.text = film.director
             writerTextLabel.text = film.writer
+            tomatoRatingLabel.text = film.rottenTomatoesRating
+            imdbRatingLabel.text = film.imdbRating
             
             if let poster = UIImage(data: film.posterImage!) {
                 posterImageView.image = poster
@@ -40,7 +46,25 @@ class FilmViewController: UIViewController {
         }
         
     }
-
-  
+    
+    @IBAction func showPickerTapped(_ sender: UIBarButtonItem) {
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let webAction = UIAlertAction(title: "Visit Page on IMDB", style: .default) { (action) in
+            
+            self.performSegue(withIdentifier: "showWeb", sender: nil)
+        }
+        let favoriteAction = UIAlertAction(title: "Add to Favorites", style: .default) { (action) in
+            
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
+            self.dismiss(animated: true, completion: nil)
+        }
+        
+        alert.addAction(webAction)
+        alert.addAction(favoriteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
 }
-
