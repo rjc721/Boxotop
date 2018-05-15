@@ -48,6 +48,7 @@ class BoxOfficeTableViewController: UITableViewController {
         refreshButton.tintColor = UIColor.black
         
         if realm.isEmpty {
+            SVProgressHUD.show()    //Show loading to user
             loadBoxOfficeFilms()
         } else {
             boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
@@ -76,26 +77,37 @@ class BoxOfficeTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return boxOfficeFilms?.count ?? 1
+        if let filmCount = boxOfficeFilms?.count {
+
+            return filmCount > 0 ? filmCount : 1    //List exists, show list OR Search cell
+        }
+
+        return 1        //List not loaded -> Show Loading cell
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "filmCell", for: indexPath)
-        
+      
         if boxOfficeFilms != nil {
-            cell.textLabel?.text = boxOfficeFilms![indexPath.row].title
-            
-            
-            if let poster = UIImage(data: (boxOfficeFilms?[indexPath.row].posterImage)!) {
-                cell.imageView?.image = poster
+            if boxOfficeFilms!.count == 0 {     //Case - filtered but did not find
+                cell.imageView?.image = nil
+                cell.textLabel?.numberOfLines = 0
+                cell.textLabel?.lineBreakMode = .byWordWrapping
+                cell.textLabel?.text = "Not found in box office movies,\rclick to search IMDB for movie title"
             }
-            
-        } else {
+            if boxOfficeFilms!.count > 0 {      //Case - displaying films like normal or filtered
+                cell.textLabel?.text = boxOfficeFilms![indexPath.row].title
+                
+                if let poster = UIImage(data: (boxOfficeFilms?[indexPath.row].posterImage)!) {
+                    cell.imageView?.image = poster
+                }
+            }
+        } else {                                //Case - Films not yet loaded at launch
             cell.textLabel?.text = "Loading Data..."
         }
-
+        
         cell.backgroundColor = ((indexPath.row % 2) == 1) ? tableCellGreen : UIColor.white
         
         return cell
@@ -165,16 +177,22 @@ class BoxOfficeTableViewController: UITableViewController {
     func decodeMDBJSON(_ json : JSON, saveToRealm: Bool) {
         
         let newFilm = Film()
-        newFilm.title = json["Title"].string!
-        newFilm.cast = json["Actors"].string!
-        //newFilm.criticRating = json["Metascore"].double!
+        
+        newFilm.title = json["Title"].string!               //Using explicit unwrapping because JSON is
+        newFilm.cast = json["Actors"].string!               //checked for validity above
+        newFilm.criticRating = json["Metascore"].string!    //and these strings return "N/A" when empty
         newFilm.director = json["Director"].string!
-        //newFilm.imdbRating = json["imdbRating"].double!
+        newFilm.imdbRating = json["imdbRating"].string!
         newFilm.plot = json["Plot"].string!
         newFilm.ratingMPAA = json["Rated"].string!
         newFilm.releaseDate = json["Released"].string!
-        //newFilm.rottenTomatoesRating = json["Ratings"][2]["Value"].string!
         newFilm.writer = json["Writer"].string!
+        
+        if let rottenTomatoRating = json["Ratings"][1]["Value"].string {
+            newFilm.rottenTomatoesRating = rottenTomatoRating
+        } else {
+            newFilm.rottenTomatoesRating = "Not Available"
+        }
         
         if let posterImageURL = json["Poster"].string {
     
@@ -203,7 +221,7 @@ class BoxOfficeTableViewController: UITableViewController {
         tableViewCache = boxOfficeFilms
         
         tableView.reloadData()
-        SVProgressHUD.dismiss(withDelay: 1)
+        SVProgressHUD.dismiss(withDelay: 1) //Dismiss Progress HUD, Load Complete
     }
     
     // MARK: - Navigation
@@ -223,6 +241,8 @@ class BoxOfficeTableViewController: UITableViewController {
     
 }
 
+    //MARK: Search Bar Delegate Methods
+
 extension BoxOfficeTableViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -235,11 +255,10 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
-        //let predicate = NSPredicate(format: "title contains[cd] %@ || releaseDate contains[cd] %@ || cast contains[cd] %@", searchBar.text!, searchBar.text!, searchBar.text!)
+        let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@ || director CONTAINS[cd] %@ || %K CONTAINS[cd] %@", argumentArray: [searchBar.text!, searchBar.text!, "cast", searchBar.text!])
         
-        let predicate = NSPredicate(format: "title CONTAINS[cd] %@ || director CONTAINS[cd] %@ || %K CONTAINS[cd] %@", argumentArray: [searchBar.text!, searchBar.text!, "cast", searchBar.text!])
-        boxOfficeFilms = tableViewCache?.filter(predicate).sorted(byKeyPath: "title")
-
+        boxOfficeFilms = tableViewCache?.filter(filterPredicate).sorted(byKeyPath: "title")
+        
         tableView.reloadData()
         
         if searchText.count == 0 {

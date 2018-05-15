@@ -12,8 +12,8 @@ import RealmSwift
 class Film: Object {
     @objc dynamic var title: String = ""
     @objc dynamic var plot: String = ""
-    @objc dynamic var imdbRating: Double = 0.0
-    @objc dynamic var criticRating: Double = 0.0
+    @objc dynamic var imdbRating: String = ""
+    @objc dynamic var criticRating: String = ""
     @objc dynamic var rottenTomatoesRating: String = ""
     @objc dynamic var releaseDate: String = ""
     @objc dynamic var director: String = ""
