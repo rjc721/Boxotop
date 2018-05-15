@@ -127,10 +127,22 @@
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
+                                            <stackView opaque="NO" contentMode="scaleToFill" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="s4G-d1-kEq" customClass="RatingControl" customModule="Boxotop" customModuleProvider="target">
+                                                <rect key="frame" x="128" y="272.5" width="170" height="30"/>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="size" keyPath="starSize">
+                                                        <size key="value" width="30" height="30"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="starCount">
+                                                        <integer key="value" value="5"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                            </stackView>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstItem="4cL-Zj-rHO" firstAttribute="top" secondItem="m22-WK-meb" secondAttribute="bottom" constant="20" id="03s-F0-GFM"/>
+                                            <constraint firstItem="s4G-d1-kEq" firstAttribute="leading" secondItem="U80-wS-6iJ" secondAttribute="trailing" constant="22.5" id="099-iL-b2x"/>
                                             <constraint firstItem="hMs-hx-Bfm" firstAttribute="top" secondItem="rtV-T7-HKn" secondAttribute="bottom" constant="25" id="0bt-xS-AkC"/>
                                             <constraint firstItem="t1k-K2-wwM" firstAttribute="leading" secondItem="Fyf-N7-LOb" secondAttribute="leading" constant="20" id="1cX-Nd-xQe"/>
                                             <constraint firstAttribute="trailing" secondItem="48S-4X-oi2" secondAttribute="trailing" constant="39" id="4Qs-Gz-LlF"/>
@@ -172,6 +184,7 @@
                                             <constraint firstItem="JrQ-bb-yaV" firstAttribute="top" secondItem="U80-wS-6iJ" secondAttribute="bottom" constant="20" id="ufW-tB-96J"/>
                                             <constraint firstItem="JyE-PF-EfU" firstAttribute="leading" secondItem="t1k-K2-wwM" secondAttribute="trailing" constant="30" id="vEa-Zg-NuV"/>
                                             <constraint firstItem="rtV-T7-HKn" firstAttribute="leading" secondItem="Fyf-N7-LOb" secondAttribute="leading" constant="39" id="vu5-Uy-Fx8"/>
+                                            <constraint firstItem="s4G-d1-kEq" firstAttribute="centerY" secondItem="U80-wS-6iJ" secondAttribute="centerY" id="wJ5-bC-nO7"/>
                                             <constraint firstItem="xg5-MW-dcC" firstAttribute="top" secondItem="bjk-e2-xgw" secondAttribute="bottom" constant="10" id="zFU-9h-cR2"/>
                                         </constraints>
                                     </view>
@@ -210,6 +223,7 @@
                         <outlet property="plotTextLabel" destination="GxC-c2-72N" id="Ed6-Xo-BqW"/>
                         <outlet property="posterImageView" destination="t1k-K2-wwM" id="UhC-gt-1yH"/>
                         <outlet property="releasedDateLabel" destination="5dQ-Bf-Mne" id="N76-lL-SnI"/>
+                        <outlet property="starRatingControl" destination="s4G-d1-kEq" id="UkA-Bx-tqA"/>
                         <outlet property="tomatoRatingLabel" destination="48S-4X-oi2" id="5m3-L4-UNR"/>
                         <outlet property="writerTextLabel" destination="xg5-MW-dcC" id="0i6-2C-KkW"/>
                         <segue destination="a7l-mD-y5n" kind="presentation" identifier="showWeb" id="PjP-iU-45t"/>
@@ -285,7 +299,6 @@
                     </tableView>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Box Office" id="ZCY-bz-MkI">
-                        <barButtonItem key="leftBarButtonItem" systemItem="bookmarks" id="uEM-iA-agk"/>
                         <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="ac5-H3-Vpn">
                             <connections>
                                 <action selector="refreshTapped:" destination="gl1-Rn-NwQ" id="Xnr-W6-HFV"/>

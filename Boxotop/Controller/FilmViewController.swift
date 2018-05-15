@@ -22,6 +22,7 @@ class FilmViewController: UIViewController {
     @IBOutlet weak var writerTextLabel: UILabel!
     @IBOutlet weak var tomatoRatingLabel: UILabel!
     @IBOutlet weak var imdbRatingLabel: UILabel!
+    @IBOutlet weak var starRatingControl: RatingControl!
     
     
     override func viewDidLoad() {
@@ -36,6 +37,7 @@ class FilmViewController: UIViewController {
             writerTextLabel.text = film.writer
             tomatoRatingLabel.text = film.rottenTomatoesRating
             imdbRatingLabel.text = film.imdbRating
+            starRatingControl.rating = film.userRating
             
             if let poster = UIImage(data: film.posterImage!) {
                 posterImageView.image = poster
@@ -43,9 +45,16 @@ class FilmViewController: UIViewController {
                 posterImageView.image = #imageLiteral(resourceName: "defaultPhoto")
             }
             
+            starRatingControl.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(updateRating)))
+            
         }
         
     }
+    
+    @objc func updateRating() {
+        print("Rating updated!")
+    }
+    
     
     @IBAction func showPickerTapped(_ sender: UIBarButtonItem) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -53,7 +62,7 @@ class FilmViewController: UIViewController {
             
             self.performSegue(withIdentifier: "showWeb", sender: nil)
         }
-        let favoriteAction = UIAlertAction(title: "Add to Favorites", style: .default) { (action) in
+        let showtimesAction = UIAlertAction(title: "Showtimes Near Me", style: .default) { (action) in
             
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
@@ -61,7 +70,7 @@ class FilmViewController: UIViewController {
         }
         
         alert.addAction(webAction)
-        alert.addAction(favoriteAction)
+        alert.addAction(showtimesAction)
         alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
