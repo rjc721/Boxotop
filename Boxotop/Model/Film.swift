@@ -20,5 +20,6 @@ class Film: Object {
     @objc dynamic var writer: String = ""
     @objc dynamic var ratingMPAA: String = ""
     @objc dynamic var cast: String = ""
+    @objc dynamic var posterImage: Data?
     
 }

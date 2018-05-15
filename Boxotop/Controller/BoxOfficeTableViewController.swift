@@ -15,20 +15,19 @@ import SwiftyJSON
 class BoxOfficeTableViewController: UITableViewController {
     
     let realm = try! Realm()            //Initiate Realm for persistent storage
-    var boxOfficeFilms: Results<Film>?  // to avoid unnecessary networking
+    var boxOfficeFilms: Results<Film>?  // to avoid redundant networking
     
     let OMDB_API_KEY = "9674d90"                //API Key - Open Movie DB
     let OMDB_URL = "http://www.omdbapi.com/"    //Open Movie DB API
-    let MOVIE_GLU_KEY = "99999"                 //API Key - MovieGlu
+    
+    let MOVIE_GLU_KEY = "mZ7e3PiwO69tFDYCwi63D1ZoROh14OViR6yqzqu6"  //API Key - MovieGlu
     let MOVIE_GLU_URL = "https://api-gate.movieglu.com/"    //API for getting Now Playing movies
-    
-    let movieGluParams = ["n" : "10", "api" : "99980980"]   //Not real for the moment
-    
-    let testParams = ["s" : "a-quiet-place", "apikey" : "9674d90"]
-    let testOpenMovieAPIAddress = "http://www.omdbapi.com/?s=a-quiet-place&y=2018&apikey=9674d90" //TEST
-    
-    let navBarGreen = UIColor(hexString: "5C9E41")
-    let tableCellGreen = UIColor(hexString: "BFDBB3")
+    let MOVIE_GLU_CLIENT = "WHYO"
+    let MOVIE_GLU_AUTH = "Basic V0hZTzpJSkxXbk53a0l5cXg="
+    let MOVIE_GLU_VERSION = "v102"
+   
+    let navBarGreen = UIColor(hexString: "5C9E41")      //Green colors from the test design documentation
+    let tableCellGreen = UIColor(hexString: "BFDBB3")   //given from "EliteDesign"
     
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
@@ -40,12 +39,14 @@ class BoxOfficeTableViewController: UITableViewController {
         super.viewDidLoad()
         tableView.rowHeight = 80.0
         
-        self.navigationController?.navigationBar.barTintColor = navBarGreen
+        guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
+        navBar.barTintColor = navBarGreen
+        navBar.tintColor = UIColor.flatWhite()
         searchBar.barTintColor = navBarGreen
         refreshButton.tintColor = UIColor.black
         
         if realm.isEmpty {
-            loadBoxOfficeFilms(url: MOVIE_GLU_URL, parameters: movieGluParams)
+            loadBoxOfficeFilms()
         } else {
             boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
         }
@@ -60,7 +61,7 @@ class BoxOfficeTableViewController: UITableViewController {
             }
         } catch {fatalError("Crashed deleting on refresh")}
         
-        loadBoxOfficeFilms(url: MOVIE_GLU_URL, parameters: movieGluParams)
+        loadBoxOfficeFilms()
     }
     
 
@@ -78,6 +79,11 @@ class BoxOfficeTableViewController: UITableViewController {
         
         if boxOfficeFilms != nil {
             cell.textLabel?.text = boxOfficeFilms![indexPath.row].title
+            
+            if let poster = UIImage(data: (boxOfficeFilms?[indexPath.row].posterImage)!) {
+                cell.imageView?.image = poster
+            }
+            
         } else {
             cell.textLabel?.text = "Loading Data..."
         }
@@ -90,11 +96,16 @@ class BoxOfficeTableViewController: UITableViewController {
     
     
     //MARK: Networking with Alamofire
-    func loadBoxOfficeFilms(url: String, parameters: [String : String]) {
+    
+    func loadBoxOfficeFilms() {
         
         loadFromMDB(titles: movies)
         
-//        Alamofire.request(url, method: .get, parameters: parameters).responseJSON { response in
+        let movieGluHeaders = ["client" : MOVIE_GLU_CLIENT, "x-api-key" : MOVIE_GLU_KEY, "Authorization" : MOVIE_GLU_AUTH, "api-version" : MOVIE_GLU_VERSION]
+        let nowPlayingURL = MOVIE_GLU_URL + "filmsNowShowing/?n=15"
+        
+        
+//        Alamofire.request(nowPlayingURL, method: .get, headers: movieGluHeaders).responseJSON { response in
 //            //print("Request: \(String(describing: response.request))")   // original url request
 //            //print("Response: \(String(describing: response.response))") // http url response
 //            //print("Result: \(response.result)")                         // response serialization result
@@ -103,7 +114,7 @@ class BoxOfficeTableViewController: UITableViewController {
 //
 //                let filmJSON : JSON = JSON(response.result.value!)
 //
-//                self.updateUIWithData(json: filmJSON)
+//                //self.updateUIWithData(json: filmJSON)
 //
 //            } else {
 //
@@ -128,21 +139,22 @@ class BoxOfficeTableViewController: UITableViewController {
                     
                     let filmJSON : JSON = JSON(response.result.value!)
                     
-                    self.decodingJSON(json: filmJSON)
+                    self.decodeMDBJSON(filmJSON, saveToRealm: true)
                     
-                } else {
-                    
-                }
-                
-                if let json = response.result.value {
-                    print("JSON: \(json)") // serialized json response
                 }
             }
         }
     }
     
     //MARK: Parsing with SwiftyJSON
-    func decodingJSON(json : JSON) {
+    
+    func decodeMovieGluJSON(_ json: JSON) {
+        
+    }
+    
+    
+    // Movie Database JSON -- Create Film objects, load into Tableview
+    func decodeMDBJSON(_ json : JSON, saveToRealm: Bool) {
         
         let newFilm = Film()
         newFilm.title = json["Title"].string!
@@ -155,27 +167,31 @@ class BoxOfficeTableViewController: UITableViewController {
         newFilm.releaseDate = json["Released"].string!
         //newFilm.rottenTomatoesRating = json["Ratings"][2]["Value"].string!
         
-        do {
-            try realm.write {
-                realm.add(newFilm)
+        if let posterImageURL = json["Poster"].string {
+    
+            let url = URL(string: posterImageURL)
+            
+            do {
+                newFilm.posterImage = try Data(contentsOf: url!)
+            } catch {
+                newFilm.posterImage = nil
             }
-        } catch {
-            print("Error loading film into Realm")
+        }
+        
+        if saveToRealm {
+            do {
+                try realm.write {
+                    realm.add(newFilm)
+                }
+            } catch {
+                print("Error loading film into Realm")
+            }
+        } else {
+            //Show movie search results
         }
         
         boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
         tableView.reloadData()
-        
-        //If known
-        /*
-         let title = json[][]
-        */
-        
-        //If searching
-        //let title = json["Search"][1]["Title"]
-        //let resultsNum = json["totalResults"]
-        //print("Title 1 is: \(resultsNum)")
-        
     }
     
     // MARK: - Navigation
@@ -198,21 +214,16 @@ class BoxOfficeTableViewController: UITableViewController {
 extension BoxOfficeTableViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        //
+    
+        DispatchQueue.main.async {
+            searchBar.resignFirstResponder()
+        }
+        
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchBar.text?.count == 0 {
-            
-            //movies = movies?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title")
-            tableView.reloadData()
-            
-            DispatchQueue.main.async {
-                searchBar.resignFirstResponder()
-            }
-        } else {
-            
-        }
+        //movies = movies?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title")
+        // tableView.reloadData()
     }
 
 }
