@@ -11,11 +11,13 @@ import ChameleonFramework
 import RealmSwift
 import Alamofire
 import SwiftyJSON
+import SVProgressHUD
 
 class BoxOfficeTableViewController: UITableViewController {
     
     let realm = try! Realm()            //Initiate Realm for persistent storage
     var boxOfficeFilms: Results<Film>?  // to avoid redundant networking
+    var tableViewCache: Results<Film>?
     
     let OMDB_API_KEY = "9674d90"                //API Key - Open Movie DB
     let OMDB_URL = "http://www.omdbapi.com/"    //Open Movie DB API
@@ -49,11 +51,16 @@ class BoxOfficeTableViewController: UITableViewController {
             loadBoxOfficeFilms()
         } else {
             boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
+            tableViewCache = boxOfficeFilms
         }
         
     }
 
     @IBAction func refreshTapped(_ sender: UIBarButtonItem) {
+        
+        SVProgressHUD.show()
+        searchBar.text = ""
+        searchBar.resignFirstResponder()
         
         do {
             try realm.write {
@@ -79,6 +86,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
         if boxOfficeFilms != nil {
             cell.textLabel?.text = boxOfficeFilms![indexPath.row].title
+            
             
             if let poster = UIImage(data: (boxOfficeFilms?[indexPath.row].posterImage)!) {
                 cell.imageView?.image = poster
@@ -166,6 +174,7 @@ class BoxOfficeTableViewController: UITableViewController {
         newFilm.ratingMPAA = json["Rated"].string!
         newFilm.releaseDate = json["Released"].string!
         //newFilm.rottenTomatoesRating = json["Ratings"][2]["Value"].string!
+        newFilm.writer = json["Writer"].string!
         
         if let posterImageURL = json["Poster"].string {
     
@@ -191,7 +200,10 @@ class BoxOfficeTableViewController: UITableViewController {
         }
         
         boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
+        tableViewCache = boxOfficeFilms
+        
         tableView.reloadData()
+        SVProgressHUD.dismiss(withDelay: 1)
     }
     
     // MARK: - Navigation
@@ -222,8 +234,19 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        //movies = movies?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title")
-        // tableView.reloadData()
+        
+        //let predicate = NSPredicate(format: "title contains[cd] %@ || releaseDate contains[cd] %@ || cast contains[cd] %@", searchBar.text!, searchBar.text!, searchBar.text!)
+        
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@ || director CONTAINS[cd] %@ || %K CONTAINS[cd] %@", argumentArray: [searchBar.text!, searchBar.text!, "cast", searchBar.text!])
+        boxOfficeFilms = tableViewCache?.filter(predicate).sorted(byKeyPath: "title")
+
+        tableView.reloadData()
+        
+        if searchText.count == 0 {
+            boxOfficeFilms = tableViewCache
+            tableView.reloadData()
+        }
+        
     }
 
 }
