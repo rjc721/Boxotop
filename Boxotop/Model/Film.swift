@@ -14,10 +14,11 @@ class Film: Object {
     @objc dynamic var plot: String = ""
     @objc dynamic var imdbRating: Double = 0.0
     @objc dynamic var criticRating: Double = 0.0
-    @objc dynamic var userRating: Double = 0.0
+    @objc dynamic var rottenTomatoesRating: String = ""
     @objc dynamic var releaseDate: String = ""
     @objc dynamic var director: String = ""
     @objc dynamic var writer: String = ""
     @objc dynamic var ratingMPAA: String = ""
     @objc dynamic var cast: String = ""
+    
 }
