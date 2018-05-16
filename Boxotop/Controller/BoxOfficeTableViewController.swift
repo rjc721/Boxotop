@@ -17,7 +17,7 @@ class BoxOfficeTableViewController: UITableViewController {
     
     let realm = try! Realm()            //Initiate Realm for persistent storage
     var boxOfficeFilms: Results<Film>?  // to avoid redundant networking
-    var tableViewCache: Results<Film>?
+    var tableViewDisplayFilms: Results<Film>?
     var filmDatabase: Results<Film>?
     
     let OMDB_API_KEY = "9674d90"                //API Key - Open Movie DB
@@ -52,7 +52,7 @@ class BoxOfficeTableViewController: UITableViewController {
         } else {
             filmDatabase = realm.objects(Film.self)
             boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
-            tableViewCache = boxOfficeFilms
+            tableViewDisplayFilms = boxOfficeFilms
         }
         
     }
@@ -72,7 +72,7 @@ class BoxOfficeTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        if let filmCount = boxOfficeFilms?.count {
+        if let filmCount = tableViewDisplayFilms?.count {
             
             return filmCount > 0 ? filmCount : 1    //List exists, show list OR Search cell
         }
@@ -85,23 +85,21 @@ class BoxOfficeTableViewController: UITableViewController {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "filmCell", for: indexPath)
         
-        if boxOfficeFilms != nil {
-            if boxOfficeFilms!.count == 0 {     //Case - filtered but did not find
+        if tableViewDisplayFilms != nil {
+            if tableViewDisplayFilms!.count == 0 {     //Case - filtered but did not find
                 cell.imageView?.image = nil
                 cell.textLabel?.numberOfLines = 0
                 cell.textLabel?.lineBreakMode = .byWordWrapping
                 cell.isUserInteractionEnabled = false
                 cell.textLabel?.text = "No results to display. Please try different search terms. Search for movie titles by hitting \"Search\"."
             }
-            if boxOfficeFilms!.count > 0 {      //Case - displaying films like normal or filtered
-                cell.textLabel?.text = boxOfficeFilms![indexPath.row].title
+            if tableViewDisplayFilms!.count > 0 {      //Case - displaying films like normal or filtered
+                cell.textLabel?.text = tableViewDisplayFilms![indexPath.row].title
                 cell.textLabel?.numberOfLines = 0
                 cell.textLabel?.lineBreakMode = .byWordWrapping
                 cell.isUserInteractionEnabled = true
+                cell.imageView?.image = UIImage(data: tableViewDisplayFilms![indexPath.row].posterImage) ?? #imageLiteral(resourceName: "defaultPhoto")
                 
-                if let poster = UIImage(data: (boxOfficeFilms?[indexPath.row].posterImage)!) {
-                    cell.imageView?.image = poster
-                }
             }
         } else {                                //Case - Films not yet loaded at launch
             cell.textLabel?.numberOfLines = 0
@@ -204,7 +202,7 @@ class BoxOfficeTableViewController: UITableViewController {
             }
             
             if !boxOfficeSearch {
-                loadFromOMDB(imdbIDs: searchIDResults)
+                loadFromOMDB(imdbIDs: searchIDResults, isNowPlaying: false)
             } else {
                 checkSearchRelevance(results: searchResults)
             }
@@ -217,7 +215,7 @@ class BoxOfficeTableViewController: UITableViewController {
         if results.count == 1 {
             
             if let onlyResult = results.first?.imdbID {
-                loadFromOMDB(imdbIDs: [onlyResult])
+                loadFromOMDB(imdbIDs: [onlyResult], isNowPlaying: true)
             }
             
         }
@@ -229,7 +227,7 @@ class BoxOfficeTableViewController: UITableViewController {
             
             for result in results {
                 if let releaseYearInt = Int(result.yearReleased) {
-                    print("Release year Int: \(releaseYearInt)")
+                    
                     switch releaseYearInt {
                         
                     case year:  result.relevanceScore += 3
@@ -248,15 +246,13 @@ class BoxOfficeTableViewController: UITableViewController {
             let sortedResults = results.sorted(by: {$0.relevanceScore > $1.relevanceScore})
             
             if let bestResult = sortedResults.first?.imdbID {
-                loadFromOMDB(imdbIDs: [bestResult])
+                loadFromOMDB(imdbIDs: [bestResult], isNowPlaying: true)
             }
             
         }
     }
     
-    func loadFromOMDB(imdbIDs: [String]) {
-        
-        print("IDs passed: \(imdbIDs)")
+    func loadFromOMDB(imdbIDs: [String], isNowPlaying: Bool) {
         
         for imdbID in imdbIDs {
             
@@ -272,9 +268,8 @@ class BoxOfficeTableViewController: UITableViewController {
                         
                         if success == "True" {
                             
-                            self.decodeOMDBJSON(filmJSON, imdbID: imdbID)
-                            print("JSON passed: \(filmJSON)")
-                            
+                            self.decodeOMDBJSON(filmJSON, imdbID: imdbID, isNowPlaying: isNowPlaying)
+    
                         }
                     }
                 }
@@ -284,7 +279,7 @@ class BoxOfficeTableViewController: UITableViewController {
   
     //MARK: Create Film objects
     // Open Movie Database JSON -- Create Film objects, load into Tableview
-    func decodeOMDBJSON(_ json : JSON, imdbID: String, isNowPlaying: Bool = true) {
+    func decodeOMDBJSON(_ json : JSON, imdbID: String, isNowPlaying: Bool) {
         
         let newFilm = Film()
         
@@ -314,7 +309,7 @@ class BoxOfficeTableViewController: UITableViewController {
             do {
                 newFilm.posterImage = try Data(contentsOf: url!)
             } catch {
-                newFilm.posterImage = nil
+                newFilm.posterImage = UIImagePNGRepresentation(#imageLiteral(resourceName: "defaultPhoto"))!
             }
         }
         
@@ -325,29 +320,41 @@ class BoxOfficeTableViewController: UITableViewController {
     func updateRealm(with film: Film) {
         
         //Check to see if film already exists in database
-        let predicate = NSPredicate(format: "title == %@ && imdbID == %@", argumentArray: [film.title, film.imdbID])
+        var filmExistsInDatabase = false
         
-        if let queryFilm = filmDatabase?.filter(predicate), let title = queryFilm.first?.title {
+        let predicate = NSPredicate(format: "imdbID == %@", film.imdbID)
+        
+        if let queryFilm = filmDatabase?.filter(predicate), let ID = queryFilm.first?.imdbID {
             
-            if title == film.title {
+            if ID == film.imdbID {
                 
+                filmExistsInDatabase = true
                 SVProgressHUD.dismiss(withDelay: 1)
-                return
             }
         }
         
         //If it doesn't exist, add it to database
-        do {
-            try realm.write {
-                realm.add(film)
-                filmDatabase = realm.objects(Film.self)
+        if !filmExistsInDatabase {
+            do {
+                try realm.write {
+                    realm.add(film)
+                    filmDatabase = realm.objects(Film.self)
+                    boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
+                }
+            } catch {
+                fatalError("Error loading film into Realm")
             }
-        } catch {
-            fatalError("Error loading film into Realm")
         }
-        
-        boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
-        tableViewCache = boxOfficeFilms
+ 
+        //  If search bar is empty, we are loading Now Playing films
+        //  Else: when a User search comes in, we want to display those results
+        if searchBar.text!.isEmpty {
+            boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
+            tableViewDisplayFilms = boxOfficeFilms
+        } else {
+            let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            tableViewDisplayFilms = filmDatabase?.filter(filterPredicate).sorted(byKeyPath: "title")
+        }
         
         tableView.reloadData()
         SVProgressHUD.dismiss(withDelay: 1) //Dismiss Progress HUD, Load Complete
@@ -363,7 +370,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
         guard let indexPath = tableView.indexPath(for: selectedMovieCell as! UITableViewCell) else {fatalError("The selected cell is not being displayed by the table")}
         
-        destinationVC.film = boxOfficeFilms?[indexPath.row]
+        destinationVC.film = tableViewDisplayFilms?[indexPath.row]
         
     }
     
@@ -375,22 +382,29 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-        DispatchQueue.main.async {
-            searchBar.resignFirstResponder()
-        }
+        guard let searchQuery = searchBar.text else {fatalError("Search bar Text is nil?")}
         
+        if !searchQuery.isEmpty {
+            //User search: boxOfficeSearch is false
+            searchOMDB(titles: [searchBar.text!], boxOfficeSearch: false)
+            
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+       
+        let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
-        let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@ || director CONTAINS[cd] %@ || %K CONTAINS[cd] %@", argumentArray: [searchBar.text!, searchBar.text!, "cast", searchBar.text!])
-        
-        boxOfficeFilms = filmDatabase?.filter(filterPredicate).sorted(byKeyPath: "title")
+        tableViewDisplayFilms = filmDatabase?.filter(filterPredicate).sorted(byKeyPath: "title")
         
         tableView.reloadData()
         
         if searchText.count == 0 {
-            boxOfficeFilms = tableViewCache
+            tableViewDisplayFilms = boxOfficeFilms
             tableView.reloadData()
         }
         
