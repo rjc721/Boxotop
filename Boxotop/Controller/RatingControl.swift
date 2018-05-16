@@ -8,7 +8,13 @@
 
 import UIKit
 
+protocol RatingControlDelegate {
+    func saveRating(newRating: Int)
+}
+
 @IBDesignable class RatingControl: UIStackView {
+    
+    var delegate: RatingControlDelegate?
     
     //MARK: Properties
     private var ratingButtons = [UIButton] ()
@@ -59,6 +65,7 @@ import UIKit
         } else {
             // Otherwise set the rating to the selected star
             rating = selectedRating
+            delegate?.saveRating(newRating: rating)
         }
     }
     

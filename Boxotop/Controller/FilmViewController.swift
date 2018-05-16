@@ -12,6 +12,7 @@ import RealmSwift
 class FilmViewController: UIViewController {
     
     var film: Film?
+    let realm = try! Realm()
     
     @IBOutlet weak var filmTitleLabel: UILabel!
     @IBOutlet weak var posterImageView: UIImageView!
@@ -27,6 +28,7 @@ class FilmViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        starRatingControl.delegate = self
         
         if let film = film {
             filmTitleLabel.text = film.title
@@ -44,9 +46,6 @@ class FilmViewController: UIViewController {
             } else {
                 posterImageView.image = #imageLiteral(resourceName: "defaultPhoto")
             }
-            
-            starRatingControl.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(updateRating)))
-            
         }
         
     }
@@ -76,4 +75,18 @@ class FilmViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
+}
+
+extension FilmViewController: RatingControlDelegate {
+    
+    func saveRating(newRating: Int) {
+        do {
+            try realm.write {
+                film?.userRating = newRating
+                print(newRating)
+            }
+        } catch {
+            fatalError("Error saving user rating")
+        }
+    }
 }

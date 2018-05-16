@@ -140,6 +140,7 @@
                                             </stackView>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <gestureRecognizers/>
                                         <constraints>
                                             <constraint firstItem="4cL-Zj-rHO" firstAttribute="top" secondItem="m22-WK-meb" secondAttribute="bottom" constant="20" id="03s-F0-GFM"/>
                                             <constraint firstItem="s4G-d1-kEq" firstAttribute="leading" secondItem="U80-wS-6iJ" secondAttribute="trailing" constant="22.5" id="099-iL-b2x"/>
@@ -187,6 +188,9 @@
                                             <constraint firstItem="s4G-d1-kEq" firstAttribute="centerY" secondItem="U80-wS-6iJ" secondAttribute="centerY" id="wJ5-bC-nO7"/>
                                             <constraint firstItem="xg5-MW-dcC" firstAttribute="top" secondItem="bjk-e2-xgw" secondAttribute="bottom" constant="10" id="zFU-9h-cR2"/>
                                         </constraints>
+                                        <connections>
+                                            <outletCollection property="gestureRecognizers" destination="m50-gz-LaV" appends="YES" id="pTb-Vm-sZd"/>
+                                        </connections>
                                     </view>
                                 </subviews>
                                 <constraints>
@@ -230,6 +234,11 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="m50-gz-LaV">
+                    <connections>
+                        <outlet property="delegate" destination="BYZ-38-t0r" id="bYA-SU-ob9"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="2365.5999999999999" y="-56.221889055472268"/>
         </scene>
