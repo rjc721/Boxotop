@@ -41,7 +41,7 @@ class FilmViewController: UIViewController {
             imdbRatingLabel.text = film.imdbRating
             starRatingControl.rating = film.userRating
             
-            if let poster = UIImage(data: film.posterImage!) {
+            if let poster = UIImage(data: film.posterImage) {
                 posterImageView.image = poster
             } else {
                 posterImageView.image = #imageLiteral(resourceName: "defaultPhoto")

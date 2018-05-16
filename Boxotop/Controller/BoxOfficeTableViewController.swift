@@ -360,6 +360,38 @@ class BoxOfficeTableViewController: UITableViewController {
         SVProgressHUD.dismiss(withDelay: 1) //Dismiss Progress HUD, Load Complete
     }
     
+    //MARK: Show Now Playing/Search History/All
+    
+    @IBAction func sortingButtonTapped(_ sender: UIBarButtonItem) {
+        
+        let alert = UIAlertController(title: nil, message: "Choose Display Preference", preferredStyle: .actionSheet)
+        
+        let nowPlayingAction = UIAlertAction(title: "Show Now Playing", style: .default) { (action) in
+            
+            self.tableViewDisplayFilms = self.boxOfficeFilms
+            self.tableView.reloadData()
+        }
+        let historyAction = UIAlertAction(title: "Search History", style: .default) { (action) in
+            self.tableViewDisplayFilms = self.filmDatabase?.filter("isNowPlaying == %@", false).sorted(byKeyPath: "title")
+            self.tableView.reloadData()
+        }
+        let allAction = UIAlertAction(title: "Show All", style: .default) { (action) in
+            self.tableViewDisplayFilms = self.filmDatabase?.sorted(byKeyPath: "title")
+            self.tableView.reloadData()
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
+            self.dismiss(animated: true, completion: nil)
+        }
+        
+        alert.addAction(nowPlayingAction)
+        alert.addAction(historyAction)
+        alert.addAction(allAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+        
+    }
+
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

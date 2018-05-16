@@ -308,6 +308,11 @@
                     </tableView>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Box Office" id="ZCY-bz-MkI">
+                        <barButtonItem key="leftBarButtonItem" systemItem="organize" id="O7a-vh-lIE">
+                            <connections>
+                                <action selector="sortingButtonTapped:" destination="gl1-Rn-NwQ" id="w7Z-hc-f7i"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="ac5-H3-Vpn">
                             <connections>
                                 <action selector="refreshTapped:" destination="gl1-Rn-NwQ" id="Xnr-W6-HFV"/>
