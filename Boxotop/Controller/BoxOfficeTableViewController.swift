@@ -18,6 +18,7 @@ class BoxOfficeTableViewController: UITableViewController {
     let realm = try! Realm()            //Initiate Realm for persistent storage
     var boxOfficeFilms: Results<Film>?  // to avoid redundant networking
     var tableViewCache: Results<Film>?
+    var filmDatabase: Results<Film>?
     
     let OMDB_API_KEY = "9674d90"                //API Key - Open Movie DB
     let OMDB_URL = "http://www.omdbapi.com/"    //Open Movie DB API
@@ -34,12 +35,11 @@ class BoxOfficeTableViewController: UITableViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
     
-    var movies = ["Avengers: Infinity War", "Breaking In", "Life of the party", "Overboard", "A Quiet Place", "I Feel Pretty", "Rampage", "Tully", "Black Panther", "A Wrinkle In Time"]
+    var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.rowHeight = 80.0
-        
         
         guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
         navBar.barTintColor = navBarGreen
@@ -50,10 +50,11 @@ class BoxOfficeTableViewController: UITableViewController {
             SVProgressHUD.show()    //Show loading to user
             loadBoxOfficeFilms()
         } else {
-            boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
+            filmDatabase = realm.objects(Film.self)
+            boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
             tableViewCache = boxOfficeFilms
         }
-        
+       
     }
 
     @IBAction func refreshTapped(_ sender: UIBarButtonItem) {
@@ -61,12 +62,6 @@ class BoxOfficeTableViewController: UITableViewController {
         SVProgressHUD.show()
         searchBar.text = ""
         searchBar.resignFirstResponder()
-        
-        do {
-            try realm.write {
-                realm.deleteAll()
-            }
-        } catch {fatalError("Crashed deleting on refresh")}
         
         loadBoxOfficeFilms()
     }
@@ -94,17 +89,24 @@ class BoxOfficeTableViewController: UITableViewController {
                 cell.imageView?.image = nil
                 cell.textLabel?.numberOfLines = 0
                 cell.textLabel?.lineBreakMode = .byWordWrapping
-                cell.textLabel?.text = "Not found in box office movies,\rclick to search IMDB for movie title"
+                cell.isUserInteractionEnabled = false
+                cell.textLabel?.text = "No results to display. Please try different search terms. Search for movie titles by hitting \"Search\"."
             }
             if boxOfficeFilms!.count > 0 {      //Case - displaying films like normal or filtered
                 cell.textLabel?.text = boxOfficeFilms![indexPath.row].title
+                cell.textLabel?.numberOfLines = 0
+                cell.textLabel?.lineBreakMode = .byWordWrapping
+                cell.isUserInteractionEnabled = true
                 
                 if let poster = UIImage(data: (boxOfficeFilms?[indexPath.row].posterImage)!) {
                     cell.imageView?.image = poster
                 }
             }
         } else {                                //Case - Films not yet loaded at launch
-            cell.textLabel?.text = "Loading Data..."
+            cell.textLabel?.numberOfLines = 0
+            cell.textLabel?.lineBreakMode = .byWordWrapping
+            cell.textLabel?.text = "Loading Data...Make sure you have an Internet connection"
+            cell.isUserInteractionEnabled = false
         }
         
         cell.backgroundColor = ((indexPath.row % 2) == 1) ? tableCellGreen : UIColor.white
@@ -120,33 +122,22 @@ class BoxOfficeTableViewController: UITableViewController {
         
         loadFromMDB(titles: movies)
         
-        let movieGluHeaders = ["client" : MOVIE_GLU_CLIENT, "x-api-key" : MOVIE_GLU_KEY, "Authorization" : MOVIE_GLU_AUTH, "api-version" : MOVIE_GLU_VERSION]
-        let nowPlayingURL = MOVIE_GLU_URL + "filmsNowShowing/?n=15"
-        
-        
+//        let movieGluHeaders = ["client" : MOVIE_GLU_CLIENT, "x-api-key" : MOVIE_GLU_KEY, "Authorization" : MOVIE_GLU_AUTH, "api-version" : MOVIE_GLU_VERSION]
+//        let nowPlayingURL = MOVIE_GLU_URL + "filmsNowShowing/?n=15"
+//
 //        Alamofire.request(nowPlayingURL, method: .get, headers: movieGluHeaders).responseJSON { response in
-//            //print("Request: \(String(describing: response.request))")   // original url request
-//            //print("Response: \(String(describing: response.response))") // http url response
-//            //print("Result: \(response.result)")                         // response serialization result
 //
 //            if response.result.isSuccess {
 //
-//                let filmJSON : JSON = JSON(response.result.value!)
-//
-//                //self.updateUIWithData(json: filmJSON)
-//
-//            } else {
+//                let nowPlayingJSON : JSON = JSON(response.result.value!)
+//                self.decodeMovieGluJSON(nowPlayingJSON)
 //
 //            }
-//
-//            if let json = response.result.value {
-//                print("JSON: \(json)") // serialized json response
-//            }
-//
 //        }
     }
     
     func loadFromMDB(titles: [String]) {
+        print("Titles passed: \(titles)")
     
         for title in titles {
             let adjustedTitle = title.replacingOccurrences(of: " ", with: "-")
@@ -158,8 +149,8 @@ class BoxOfficeTableViewController: UITableViewController {
                     
                     let filmJSON : JSON = JSON(response.result.value!)
                     
-                    self.decodeMDBJSON(filmJSON, saveToRealm: true)
-                    
+                    self.decodeMDBJSON(filmJSON)
+                    print("JSON passed: \(filmJSON)")
                 }
             }
         }
@@ -168,24 +159,42 @@ class BoxOfficeTableViewController: UITableViewController {
     //MARK: Parsing with SwiftyJSON
     
     func decodeMovieGluJSON(_ json: JSON) {
+        var nowPlayingTitles = [String]()
+        
+        let filmCount = json["count"].int!
+        
+        for index in 0..<filmCount {
+            let title = json["films"][index]["film_name"].string!
+            nowPlayingTitles.append(title)
+        }
+        
+        loadFromMDB(titles: nowPlayingTitles)
         
     }
     
     
     // Movie Database JSON -- Create Film objects, load into Tableview
-    func decodeMDBJSON(_ json : JSON, saveToRealm: Bool) {
+    func decodeMDBJSON(_ json : JSON, isNowPlaying: Bool = true) {
         
         let newFilm = Film()
         
-        newFilm.title = json["Title"].string!               //Using explicit unwrapping because JSON is
-        newFilm.cast = json["Actors"].string!               //checked for validity above
-        newFilm.criticRating = json["Metascore"].string!    //and these strings return "N/A" when empty
+//        if let title = json["Title"].string {
+//            newFilm.title = title
+//        } else {
+//            print(json["Title"].string)
+//            print("****JSON: \(json)")
+//        }
+        newFilm.title = json["Title"].string!
         newFilm.director = json["Director"].string!
-        newFilm.imdbRating = json["imdbRating"].string!
+        newFilm.cast = json["Actors"].string!               //Using explicit unwrapping because JSON is
+        newFilm.criticRating = json["Metascore"].string!    //checked for validity above
+        newFilm.imdbRating = json["imdbRating"].string!     //and these strings return "N/A" when empty
         newFilm.plot = json["Plot"].string!
         newFilm.ratingMPAA = json["Rated"].string!
         newFilm.releaseDate = json["Released"].string!
         newFilm.writer = json["Writer"].string!
+        newFilm.isNowPlaying = isNowPlaying
+        
         
         if let rottenTomatoRating = json["Ratings"][1]["Value"].string {
             newFilm.rottenTomatoesRating = rottenTomatoRating
@@ -204,18 +213,34 @@ class BoxOfficeTableViewController: UITableViewController {
             }
         }
         
-        if saveToRealm {
-            do {
-                try realm.write {
-                    realm.add(newFilm)
-                }
-            } catch {
-                print("Error loading film into Realm")
-            }
-        } else {
-            //Show movie search results
-        }
+        updateRealm(with: newFilm)
+    }
+    
+    //MARK: Update Realm database
+    func updateRealm(with film: Film) {
         
+        //Check to see if film already exists in database
+        let predicate = NSPredicate(format: "title == %@ && director == %@", argumentArray: [film.title, film.director])
+        
+        if let queryFilm = filmDatabase?.filter(predicate), let title = queryFilm.first?.title {
+            
+            if title == film.title {
+                
+                SVProgressHUD.dismiss(withDelay: 1)
+                return
+            }
+        }
+      
+        //If it doesn't exist, add it to database
+        do {
+            try realm.write {
+                realm.add(film)
+                filmDatabase = realm.objects(Film.self)
+            }
+        } catch {
+            print("Error loading film into Realm")
+        }
+
         boxOfficeFilms = realm.objects(Film.self).sorted(byKeyPath: "title")
         tableViewCache = boxOfficeFilms
         
@@ -256,7 +281,7 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
         
         let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@ || director CONTAINS[cd] %@ || %K CONTAINS[cd] %@", argumentArray: [searchBar.text!, searchBar.text!, "cast", searchBar.text!])
         
-        boxOfficeFilms = tableViewCache?.filter(filterPredicate).sorted(byKeyPath: "title")
+        boxOfficeFilms = filmDatabase?.filter(filterPredicate).sorted(byKeyPath: "title")
         
         tableView.reloadData()
         

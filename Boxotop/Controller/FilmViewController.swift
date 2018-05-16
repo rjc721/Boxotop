@@ -50,10 +50,7 @@ class FilmViewController: UIViewController {
         
     }
     
-    @objc func updateRating() {
-        print("Rating updated!")
-    }
-    
+    //MARK: Action Sheet for Web/Showtimes
     
     @IBAction func showPickerTapped(_ sender: UIBarButtonItem) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -77,13 +74,14 @@ class FilmViewController: UIViewController {
     
 }
 
+//MARK: Delegate method for saving rating
+
 extension FilmViewController: RatingControlDelegate {
     
     func saveRating(newRating: Int) {
         do {
             try realm.write {
                 film?.userRating = newRating
-                print(newRating)
             }
         } catch {
             fatalError("Error saving user rating")
