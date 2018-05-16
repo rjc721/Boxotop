@@ -22,5 +22,6 @@ class Film: Object {
     @objc dynamic var cast: String = ""
     @objc dynamic var posterImage: Data?
     @objc dynamic var userRating: Int = 0
+    @objc dynamic var imdbID: String = ""
     @objc dynamic var isNowPlaying: Bool = false
 }

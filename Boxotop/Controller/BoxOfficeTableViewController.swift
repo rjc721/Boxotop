@@ -48,7 +48,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
         if realm.isEmpty {
             SVProgressHUD.show()    //Show loading to user
-            loadBoxOfficeFilms()    //Database empty on first use, load Films
+            loadBoxOfficeFilms()    //Database empty on first use, load films
         } else {
             filmDatabase = realm.objects(Film.self)
             boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
@@ -57,6 +57,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
     }
     
+    //MARK: Refresh Now Playing Films
     @IBAction func refreshTapped(_ sender: UIBarButtonItem) {
         
         SVProgressHUD.show()
@@ -115,8 +116,7 @@ class BoxOfficeTableViewController: UITableViewController {
     }
     
     
-    
-    //MARK: Networking with Alamofire
+    //MARK: Movieglu API for getting movies Now Playing
     
     func loadBoxOfficeFilms() {
         searchOMDB(titles: movies, boxOfficeSearch: true)
@@ -137,6 +137,25 @@ class BoxOfficeTableViewController: UITableViewController {
         //        }
     }
     
+    //Decode JSON Results from Movieglu
+    func decodeMovieGluJSON(_ json: JSON) {
+        var nowPlayingTitles = [String]()
+        
+        let filmCount = json["count"].int!
+        
+        for index in 0..<filmCount {
+            let title = json["films"][index]["film_name"].string!
+            nowPlayingTitles.append(title)
+        }
+        
+        searchOMDB(titles: nowPlayingTitles, boxOfficeSearch: true)
+        
+    }
+    
+    //MARK: Open Movie Database API for Movie information
+    
+    //This method handles Now Playing movies from Movieglu --> case boxOfficeSearch == true
+    //Also handles User defined random searches --> case boxOfficeSearch == false
     func searchOMDB(titles: [String], boxOfficeSearch: Bool) {
         
         for title in titles {
@@ -159,6 +178,10 @@ class BoxOfficeTableViewController: UITableViewController {
         }
     }
     
+    //Decode JSON search result
+    
+    //Gathers results to check relevance when films come from Movieglu case boxOfficeSearch == true
+    //Gets unique IMDB IDs for a User random search case boxOfficeSearch == false
     func parseSearchResultsJSON(_ json: JSON, searchQuery: String, boxOfficeSearch: Bool) {
         if let count = Int(json["totalResults"].string!) {
             
@@ -249,7 +272,7 @@ class BoxOfficeTableViewController: UITableViewController {
                         
                         if success == "True" {
                             
-                            self.decodeOMDBJSON(filmJSON)
+                            self.decodeOMDBJSON(filmJSON, imdbID: imdbID)
                             print("JSON passed: \(filmJSON)")
                             
                         }
@@ -258,26 +281,10 @@ class BoxOfficeTableViewController: UITableViewController {
             }
         }
     }
-    
-    //MARK: Parsing with SwiftyJSON
-    
-    func decodeMovieGluJSON(_ json: JSON) {
-        var nowPlayingTitles = [String]()
-        
-        let filmCount = json["count"].int!
-        
-        for index in 0..<filmCount {
-            let title = json["films"][index]["film_name"].string!
-            nowPlayingTitles.append(title)
-        }
-        
-        searchOMDB(titles: nowPlayingTitles, boxOfficeSearch: true)
-        
-    }
-    
-    
-    // Movie Database JSON -- Create Film objects, load into Tableview
-    func decodeOMDBJSON(_ json : JSON, isNowPlaying: Bool = true) {
+  
+    //MARK: Create Film objects
+    // Open Movie Database JSON -- Create Film objects, load into Tableview
+    func decodeOMDBJSON(_ json : JSON, imdbID: String, isNowPlaying: Bool = true) {
         
         let newFilm = Film()
         
@@ -290,6 +297,7 @@ class BoxOfficeTableViewController: UITableViewController {
         newFilm.ratingMPAA = json["Rated"].string!
         newFilm.releaseDate = json["Released"].string!
         newFilm.writer = json["Writer"].string!
+        newFilm.imdbID = imdbID
         newFilm.isNowPlaying = isNowPlaying
         
         
@@ -317,7 +325,7 @@ class BoxOfficeTableViewController: UITableViewController {
     func updateRealm(with film: Film) {
         
         //Check to see if film already exists in database
-        let predicate = NSPredicate(format: "title == %@ && director == %@", argumentArray: [film.title, film.director])
+        let predicate = NSPredicate(format: "title == %@ && imdbID == %@", argumentArray: [film.title, film.imdbID])
         
         if let queryFilm = filmDatabase?.filter(predicate), let title = queryFilm.first?.title {
             
