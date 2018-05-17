@@ -27,7 +27,7 @@ class BoxOfficeTableViewController: UITableViewController {
     let movieDBAPIHandler = OpenMDBAPIHandler()
     let movieJSONParser = OpenMDBJSONParser()
     
-    var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]
+    //var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -200,18 +200,18 @@ class BoxOfficeTableViewController: UITableViewController {
         let movieAPIHandler = MoviegluAPIHandler()
         let moviegluParser = MoviegluJSONParser()
         
-//        movieAPIHandler.getNowPlayingFilms { (json, error) in
-//            if error != nil {
-//                print("Movieglu API Error: \(error!)")
-//            } else {
-//                if let boxOfficeJSON = json {
-//                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
-//                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
-//                }
-//            }
-//        }
+        movieAPIHandler.getNowPlayingFilms { (json, error) in
+            if error != nil {
+                print("Movieglu API Error: \(error!)")
+            } else {
+                if let boxOfficeJSON = json {
+                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
+                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
+                }
+            }
+        }
         
-        searchOMDB(movieTitles: movies, searchType: .boxOffice)
+        //searchOMDB(movieTitles: movies, searchType: .boxOffice)
     }
     
     //MARK: - Open Movie Database API and JSON Parsing

@@ -29,14 +29,22 @@ class MoviegluAPIHandler {
         let nowPlayingURL = MOVIE_GLU_URL + "filmsNowShowing/?n=15"
         
         Alamofire.request(nowPlayingURL, method: .get, headers: movieGluHeaders).responseJSON { response in
-            
-            switch response.result {
-            case .success(let value):
-                completionHandler(value as? JSON, nil)
-            case .failure(let error):
+           
+            if response.result.isSuccess {
+                let json : JSON = JSON(response.result.value!)
+                
+                if json["status"]["state"] == "OK" {
+                    completionHandler(json, nil)
+                }
+            }
+             else {
+                let error = response.error
+                print("ERROR")
                 completionHandler(nil, error)
             }
-           
+            
+            
+            
         }
     }
 }
