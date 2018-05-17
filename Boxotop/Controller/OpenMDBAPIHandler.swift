@@ -25,29 +25,32 @@ class OpenMDBAPIHandler {
             let adjustedTitle = movieTitle.replacingOccurrences(of: " ", with: "-")
             let filmParams = ["s" : adjustedTitle, "type" : "movie", "apikey" : OMDB_API_KEY]
             
-            Alamofire.request(OMDB_URL, method: .get, parameters: filmParams).responseJSON { response in
-                
-                switch response.result {
-                case .success(let value):
-                    if let json = value as? JSON {
+            Alamofire.request(OMDB_URL, method: .get, parameters: filmParams).responseJSON
+                { response in
+                    
+                    if response.result.isSuccess {
+                        let json : JSON = JSON(response.result.value!)
+                        
                         if let success = json["Response"].string {
                             if success == "True" {
+                                
                                 completionHandler(json, movieTitle, nil)
                             }
                         }
+                    } else {
+                        let error = response.error
+                        print("ERROR")
+                        completionHandler(nil, movieTitle, error)
                     }
-                case .failure(let error):
-                    completionHandler(nil, movieTitle, error)
-                }
             }
         }
     }
     
-    func loadFromOMDB(imdbIDs: [String], completionHandler: @escaping (JSON?, Error?) -> ()) {
+    func loadFromOMDB(imdbIDs: [String], completionHandler: @escaping (JSON?, String, Error?) -> ()) {
         makeLoadCall(with: imdbIDs, completionHandler: completionHandler)
     }
     
-    private func makeLoadCall(with imdbIDs: [String], completionHandler: @escaping (JSON?, Error?) -> ()) {
+    private func makeLoadCall(with imdbIDs: [String], completionHandler: @escaping (JSON?, String, Error?) -> ()) {
         
         for imdbID in imdbIDs {
             
@@ -55,19 +58,22 @@ class OpenMDBAPIHandler {
             
             Alamofire.request(OMDB_URL, method: .get, parameters: filmParams).responseJSON { response in
                 
-                switch response.result {
-                case .success(let value):
-                    if let json = value as? JSON {
-                        if let success = json["Response"].string {
-                            if success == "True" {
-                                completionHandler(json, nil)
-                            }
+                if response.result.isSuccess {
+                    let json : JSON = JSON(response.result.value!)
+                    
+                    if let success = json["Response"].string {
+                        if success == "True" {
+                            
+                            completionHandler(json, imdbID, nil)
                         }
                     }
-                case .failure(let error):
-                    completionHandler(nil, error)
+                } else {
+                    let error = response.error
+                    print("ERROR")
+                    completionHandler(nil, imdbID, error)
                 }
             }
         }
     }
 }
+

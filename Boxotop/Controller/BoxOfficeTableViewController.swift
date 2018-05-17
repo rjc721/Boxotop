@@ -92,7 +92,7 @@ class BoxOfficeTableViewController: UITableViewController {
     }
     
     
-    // MARK: - Table view methods
+    // MARK: - Tableview methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
@@ -144,16 +144,18 @@ class BoxOfficeTableViewController: UITableViewController {
         let movieAPIHandler = MoviegluAPIHandler()
         let moviegluParser = MoviegluJSONParser()
         
-        movieAPIHandler.getNowPlayingFilms { (json, error) in
-            if error != nil {
-                print("Movieglu API Error: \(error!)")
-            } else {
-                if let boxOfficeJSON = json {
-                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
-                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
-                }
-            }
-        }
+//        movieAPIHandler.getNowPlayingFilms { (json, error) in
+//            if error != nil {
+//                print("Movieglu API Error: \(error!)")
+//            } else {
+//                if let boxOfficeJSON = json {
+//                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
+//                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
+//                }
+//            }
+//        }
+        
+        searchOMDB(movieTitles: movies, searchType: .boxOffice)
     }
     
     //MARK: - Open Movie Database API and JSON Parsing
@@ -163,50 +165,52 @@ class BoxOfficeTableViewController: UITableViewController {
             if error != nil {
                 print("OMDB API Error finding \(movieTitle): \(error!)")
             } else {
+               
                 if let searchResultsJSON = json {
+                    
+                    let (searchResults, idArray) = self.movieJSONParser.parseSearchResultsJSON(searchResultsJSON, movieTitle: movieTitle)
                     
                     switch searchType {
                     case .boxOffice:
-                        guard let searchResults = self.movieJSONParser.parseSearchResultsJSON(searchResultsJSON, movieTitle: movieTitle, searchType: searchType) as? [SearchResultOMDB] else {fatalError("Error with JSON Parser")}
                         self.checkForMostRelevant(in: searchResults)
                     case .user:
-                        
+                        self.loadMoviesFromOMDB(using: idArray, searchType: .user)
                     }
-                    
                 }
             }
         }
-        
     }
     
+    //Only checking relevance on box office search
+    //Relevance for User searches is determined by OMDB
     func checkForMostRelevant(in results: [SearchResultOMDB]) {
         
         let searchChecker = SearchRelevanceChecker()
         let matchingFilm = searchChecker.check(results: results)
         
-        movieDBAPIHandler.loadFromOMDB(imdbIDs: [matchingFilm]) { (json, error) in
-            <#code#>
-        }
-        
+        loadMoviesFromOMDB(using: [matchingFilm], searchType: .boxOffice)
     }
-  
     
-    //MARK: Update Realm database
-    func updateRealm(with film: Film) {
-        
-        //Check to see if film already exists in database
-        var filmExistsInDatabase = false
-        
-        let predicate = NSPredicate(format: "imdbID == %@", film.imdbID)
-        
-        if let queryFilm = filmDatabase?.filter(predicate), let ID = queryFilm.first?.imdbID {
-            
-            if ID == film.imdbID {
-                
-                filmExistsInDatabase = true
-                SVProgressHUD.dismiss(withDelay: 1)
+    func loadMoviesFromOMDB(using imdbIDs: [String], searchType: SearchType) {
+       
+        movieDBAPIHandler.loadFromOMDB(imdbIDs: imdbIDs) { (json, imdbID, error) in
+            if error != nil {
+                print("Error Loading imdbID: \(imdbID), \(error!)")
+            } else {
+                if let loadResultsJSON = json {
+                    let newFilm = self.movieJSONParser.createFilm(from: loadResultsJSON, imdbID: imdbID, searchType: .boxOffice)
+                    self.updateRealm(with: newFilm)
+                }
             }
         }
+    }
+  
+    //MARK: - Database Methods - Datasource for Tableview
+    
+    func updateRealm(with film: Film) {
+        
+        let duplicateChecker = DuplicateFilmChecker()
+        let filmExistsInDatabase = duplicateChecker.searchDatabaseFor(film: film)
         
         //If it doesn't exist, add it to database
         if !filmExistsInDatabase {
@@ -220,7 +224,12 @@ class BoxOfficeTableViewController: UITableViewController {
                 fatalError("Error loading film into Realm")
             }
         }
+        
+        updateUI()
+    }
  
+    func updateUI() {
+        
         //  If search bar is empty, we are loading Now Playing films
         //  Else: when a User search comes in, we want to display those results
         if searchBar.text!.isEmpty {
@@ -248,7 +257,6 @@ class BoxOfficeTableViewController: UITableViewController {
         destinationVC.film = tableViewDisplayFilms?[indexPath.row]
         
     }
-    
 }
 
 //MARK: - Search Bar Delegate Methods
@@ -260,9 +268,8 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
         guard let searchQuery = searchBar.text else {fatalError("Search bar Text is nil?")}
         
         if !searchQuery.isEmpty {
-            //User search: boxOfficeSearch is false
-            searchOMDB(titles: [searchBar.text!], boxOfficeSearch: false)
             
+            searchOMDB(movieTitles: [searchBar.text!], searchType: .user)
             
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
@@ -282,7 +289,5 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
             tableViewDisplayFilms = boxOfficeFilms
             tableView.reloadData()
         }
-        
     }
-    
 }
