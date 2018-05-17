@@ -14,11 +14,11 @@ class OpenMDBAPIHandler {
     private let OMDB_API_KEY = "9674d90"                //API Key - Open Movie DB
     private let OMDB_URL = "http://www.omdbapi.com/"    //Open Movie DB API
     
-    func searchOpenMDB(titles: [String], completionHandler: @escaping (JSON?, Error?) -> ()) {
+    func searchOpenMDB(titles: [String], completionHandler: @escaping (JSON?, String, Error?) -> ()) {
         makeSearchCall(movieTitles: titles, completionHandler: completionHandler)
     }
     
-    private func makeSearchCall(movieTitles: [String], completionHandler: @escaping (JSON?, Error?) -> ()) {
+    private func makeSearchCall(movieTitles: [String], completionHandler: @escaping (JSON?, String, Error?) -> ()) {
         
         for movieTitle in movieTitles {
             
@@ -32,12 +32,12 @@ class OpenMDBAPIHandler {
                     if let json = value as? JSON {
                         if let success = json["Response"].string {
                             if success == "True" {
-                                completionHandler(json, nil)
+                                completionHandler(json, movieTitle, nil)
                             }
                         }
                     }
                 case .failure(let error):
-                    completionHandler(nil, error)
+                    completionHandler(nil, movieTitle, error)
                 }
             }
         }

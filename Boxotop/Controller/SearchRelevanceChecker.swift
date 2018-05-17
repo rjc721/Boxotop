@@ -10,16 +10,16 @@ import Foundation
 
 class SearchRelevanceChecker {
     
-    func checkSearchRelevance(results: [SearchResultOMDB]) {
+    func check(results: [SearchResultOMDB]) -> String {
         
         if results.count == 1 {
             
-            if let onlyResult = results.first?.imdbID {
-                loadFromOMDB(imdbIDs: [onlyResult], isNowPlaying: true)
-            }
+            guard let onlyResult = results.first?.imdbID else {fatalError("Relevance checker VERY broken")}
             
+            return onlyResult
         }
-        else if results.count > 1 {
+            
+        else {
             
             let date = Date()
             let calendar = Calendar.current
@@ -45,10 +45,9 @@ class SearchRelevanceChecker {
             
             let sortedResults = results.sorted(by: {$0.relevanceScore > $1.relevanceScore})
             
-            if let bestResult = sortedResults.first?.imdbID {
-                loadFromOMDB(imdbIDs: [bestResult], isNowPlaying: true)
-            }
+            guard let bestResult = sortedResults.first?.imdbID else {fatalError("Relevance checker broken")}
             
+            return bestResult
         }
     }
 }

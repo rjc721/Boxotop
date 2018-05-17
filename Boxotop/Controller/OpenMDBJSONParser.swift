@@ -11,11 +11,11 @@ import SwiftyJSON
 
 class OpenMDBJSONParser {
     
-    func parseSearchResultsJSON(_ json: JSON, searchQuery: String, boxOfficeSearch: Bool) {
+    func parseSearchResultsJSON(_ json: JSON, movieTitle: String, searchType: SearchType) -> ([SearchResultOMDB]?, [String]?) {
         if let count = Int(json["totalResults"].string!) {
             
-            var searchResults = [SearchResultOMDB]()    //Using these results to find true box office titles
-            var searchIDResults = [String]()            //Using these IDS for a generic user search
+            var searchResults = [SearchResultOMDB]()
+            var searchIDResults = [String]()
             
             let resultsCount = count <= 10 ? count : 10     //Search JSON contains max of 10 results
             
@@ -26,22 +26,22 @@ class OpenMDBJSONParser {
                 searchResult.imdbID = json["Search"][index]["imdbID"].string!
                 searchResult.yearReleased = json["Search"][index]["Year"].string!
                 searchResult.relevanceScore = 0
-                searchResult.searchQuery = searchQuery
+                searchResult.searchQuery = movieTitle
                 
                 searchIDResults.append(searchResult.imdbID)
                 searchResults.append(searchResult)
             }
             
-            if !boxOfficeSearch {
-                loadFromOMDB(imdbIDs: searchIDResults, isNowPlaying: false)
-            } else {
-                checkSearchRelevance(results: searchResults)
+            switch searchType {
+            case .boxOffice:
+                return (searchResults, nil)     //Using these results to find box office titles
+            case .user:
+                return (nil, searchIDResults)   //Using these IDS for a generic user search, pass to OMDB load
             }
-            
         }
     }
     
-    func decodeOMDBJSON(_ json : JSON, imdbID: String, searchType: SearchType) {
+    func createFilm(from json : JSON, imdbID: String, searchType: SearchType) {
         
         let newFilm = Film()
         

@@ -138,7 +138,7 @@ class BoxOfficeTableViewController: UITableViewController {
     }
     
     
-    //MARK: Movieglu API for getting movies Now Playing
+    //MARK: - Movieglu API and JSON Parsing
     
     func loadBoxOfficeFilms() {
         let movieAPIHandler = MoviegluAPIHandler()
@@ -150,19 +150,28 @@ class BoxOfficeTableViewController: UITableViewController {
             } else {
                 if let boxOfficeJSON = json {
                     let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
-                    self.searchOMDB(movieTitles: movies)
+                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
                 }
             }
         }
     }
     
-    func searchOMDB(movieTitles: [String]) {
+    //MARK: - Open Movie Database API and JSON Parsing
+    func searchOMDB(movieTitles: [String], searchType: SearchType) {
         
-        movieDBAPIHandler.searchOpenMDB(titles: movieTitles) { (json, error)  in
+        movieDBAPIHandler.searchOpenMDB(titles: movieTitles) { (json, movieTitle, error)  in
             if error != nil {
-                print("OMDB API Error: \(error!)")
+                print("OMDB API Error finding \(movieTitle): \(error!)")
             } else {
                 if let searchResultsJSON = json {
+                    
+                    switch searchType {
+                    case .boxOffice:
+                        guard let searchResults = self.movieJSONParser.parseSearchResultsJSON(searchResultsJSON, movieTitle: movieTitle, searchType: searchType) as? [SearchResultOMDB] else {fatalError("Error with JSON Parser")}
+                        self.checkForMostRelevant(in: searchResults)
+                    case .user:
+                        
+                    }
                     
                 }
             }
@@ -170,22 +179,17 @@ class BoxOfficeTableViewController: UITableViewController {
         
     }
     
-    //MARK: Open Movie Database API
-    
-    
-    
-    //Decode JSON search result
-    
-    //Gathers results to check relevance when films come from Movieglu case boxOfficeSearch == true
-    //Gets unique IMDB IDs for a User random search case boxOfficeSearch == false
-    
+    func checkForMostRelevant(in results: [SearchResultOMDB]) {
         
-    //MARK: Relevance Checker
-    
-    //MARK: Load from OMDB
+        let searchChecker = SearchRelevanceChecker()
+        let matchingFilm = searchChecker.check(results: results)
+        
+        movieDBAPIHandler.loadFromOMDB(imdbIDs: [matchingFilm]) { (json, error) in
+            <#code#>
+        }
+        
+    }
   
-    //MARK: Create Film objects
-    
     
     //MARK: Update Realm database
     func updateRealm(with film: Film) {
