@@ -20,9 +20,11 @@ class DuplicateFilmChecker {
         let predicate = NSPredicate(format: "imdbID == %@", film.imdbID)
         let queryFilm = filmDatabase.filter(predicate)
         
-        guard let imdbID = queryFilm.first?.imdbID else {fatalError("Problem with Realm within Duplicate Film Checker")}
+        if let imdbID = queryFilm.first?.imdbID {
+            return imdbID == film.imdbID
+        }
             
-        return imdbID == film.imdbID
+        return false
         
     }
         

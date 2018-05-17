@@ -29,6 +29,16 @@ class BoxOfficeTableViewController: UITableViewController {
     
     var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]
     
+    enum TableViewDisplayType {
+        case nowPlaying
+        case reviewed
+        case searchHistory
+        case searchResults
+    }
+    
+    var tableDisplayType: TableViewDisplayType = .nowPlaying
+    var tableTypeBeforeSearch: TableViewDisplayType?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -48,11 +58,17 @@ class BoxOfficeTableViewController: UITableViewController {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        tableView.reloadData()
+    }
+    
     //MARK: - Refresh Button Tapped
     
     @IBAction func refreshTapped(_ sender: UIBarButtonItem) {
         
         SVProgressHUD.show()
+        tableDisplayType = .nowPlaying
         searchBar.text = ""
         searchBar.resignFirstResponder()
         
@@ -63,19 +79,28 @@ class BoxOfficeTableViewController: UITableViewController {
     
     @IBAction func sortingButtonTapped(_ sender: UIBarButtonItem) {
         
-        let alert = UIAlertController(title: nil, message: "Choose Display Preference", preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         
         let nowPlayingAction = UIAlertAction(title: "Show Now Playing", style: .default) { (action) in
             
             self.tableViewDisplayFilms = self.boxOfficeFilms
+            self.tableDisplayType = .nowPlaying
+            self.searchBar.text = ""
+            self.searchBar.resignFirstResponder()
+            self.tableView.reloadData()
+        }
+        let reviewedAlert = UIAlertAction(title: "Reviewed Films", style: .default) { (action) in
+            self.tableViewDisplayFilms = self.filmDatabase?.filter("userRating > %@", 0)
+            self.tableDisplayType = .reviewed
+            self.searchBar.text = ""
+            self.searchBar.resignFirstResponder()
             self.tableView.reloadData()
         }
         let historyAction = UIAlertAction(title: "Search History", style: .default) { (action) in
             self.tableViewDisplayFilms = self.filmDatabase?.filter("isNowPlaying == %@", false).sorted(byKeyPath: "title")
-            self.tableView.reloadData()
-        }
-        let allAction = UIAlertAction(title: "Show All", style: .default) { (action) in
-            self.tableViewDisplayFilms = self.filmDatabase?.sorted(byKeyPath: "title")
+            self.tableDisplayType = .searchHistory
+            self.searchBar.text = ""
+            self.searchBar.resignFirstResponder()
             self.tableView.reloadData()
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
@@ -83,8 +108,8 @@ class BoxOfficeTableViewController: UITableViewController {
         }
         
         alert.addAction(nowPlayingAction)
+        alert.addAction(reviewedAlert)
         alert.addAction(historyAction)
-        alert.addAction(allAction)
         alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
@@ -93,6 +118,25 @@ class BoxOfficeTableViewController: UITableViewController {
     
     
     // MARK: - Tableview methods
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        
+        switch tableDisplayType {
+        case .nowPlaying:
+            return "Now Playing"
+        case .reviewed:
+            return "Reviewed Films"
+        case .searchHistory:
+            return "Search History"
+        case .searchResults:
+            return "Search Results"
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        
+        return 30.0
+    }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
@@ -115,7 +159,19 @@ class BoxOfficeTableViewController: UITableViewController {
                 cell.textLabel?.numberOfLines = 0
                 cell.textLabel?.lineBreakMode = .byWordWrapping
                 cell.isUserInteractionEnabled = false
-                cell.textLabel?.text = "No results to display. Please try different search terms. Search for movie titles by hitting \"Search\"."
+                
+                var cellText = ""
+                switch tableDisplayType {
+                case .nowPlaying:
+                    cellText = "No films meet your filter terms. Hit Search to search for titles online!"
+                case .reviewed:
+                    cellText = "You haven't reviewed any films yet or your filter terms match no results."
+                case .searchHistory:
+                    cellText = "No films in search history match. Hit Search to find movies online!"
+                case .searchResults:
+                    cellText = "Search yielded no results"
+                }
+                cell.textLabel?.text = cellText
             }
             if tableViewDisplayFilms!.count > 0 {      //Case - displaying films like normal or filtered
                 cell.textLabel?.text = tableViewDisplayFilms![indexPath.row].title
@@ -175,6 +231,7 @@ class BoxOfficeTableViewController: UITableViewController {
                         self.checkForMostRelevant(in: searchResults)
                     case .user:
                         self.loadMoviesFromOMDB(using: idArray, searchType: .user)
+                       
                     }
                 }
             }
@@ -197,15 +254,17 @@ class BoxOfficeTableViewController: UITableViewController {
             if error != nil {
                 print("Error Loading imdbID: \(imdbID), \(error!)")
             } else {
+              
                 if let loadResultsJSON = json {
-                    let newFilm = self.movieJSONParser.createFilm(from: loadResultsJSON, imdbID: imdbID, searchType: .boxOffice)
+                    let newFilm = self.movieJSONParser.createFilm(from: loadResultsJSON, imdbID: imdbID, searchType: searchType)
                     self.updateRealm(with: newFilm)
+                    
                 }
             }
         }
     }
   
-    //MARK: - Database Methods - Datasource for Tableview
+    //MARK: - Database Methods - Realm
     
     func updateRealm(with film: Film) {
         
@@ -241,7 +300,7 @@ class BoxOfficeTableViewController: UITableViewController {
         }
         
         tableView.reloadData()
-        SVProgressHUD.dismiss(withDelay: 1) //Dismiss Progress HUD, Load Complete
+        SVProgressHUD.dismiss() //Dismiss Progress HUD, Load Complete
     }
 
     // MARK: - Navigation
@@ -268,6 +327,9 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
         guard let searchQuery = searchBar.text else {fatalError("Search bar Text is nil?")}
         
         if !searchQuery.isEmpty {
+            SVProgressHUD.show()
+            tableTypeBeforeSearch = tableDisplayType
+            tableDisplayType = .searchResults
             
             searchOMDB(movieTitles: [searchBar.text!], searchType: .user)
             
@@ -278,15 +340,40 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        
+        print(tableDisplayType)
        
         let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
-        tableViewDisplayFilms = filmDatabase?.filter(filterPredicate).sorted(byKeyPath: "title")
+        switch tableDisplayType {
+        case .nowPlaying:
+            tableViewDisplayFilms = boxOfficeFilms?.filter(filterPredicate).sorted(byKeyPath: "title")
+        case .reviewed:
+            tableViewDisplayFilms = filmDatabase?.filter("userRating > %@", 0).filter(filterPredicate).sorted(byKeyPath: "title")
+        case .searchHistory:
+            tableViewDisplayFilms = filmDatabase?.filter("isNowPlaying == %@", false).filter(filterPredicate).sorted(byKeyPath: "title")
+        default: break
+        }
         
         tableView.reloadData()
         
         if searchText.count == 0 {
-            tableViewDisplayFilms = boxOfficeFilms
+            
+            if tableTypeBeforeSearch != nil {
+                tableDisplayType = tableTypeBeforeSearch!
+                tableTypeBeforeSearch = nil
+            }
+           
+            switch tableDisplayType {
+            case .nowPlaying:
+                tableViewDisplayFilms = boxOfficeFilms
+            case .reviewed:
+                tableViewDisplayFilms = filmDatabase?.filter("userRating > %@", 0)
+            case .searchHistory:
+                tableViewDisplayFilms = filmDatabase?.filter("isNowPlaying == %@", false).sorted(byKeyPath: "title")
+            default: break
+            }
+            
             tableView.reloadData()
         }
     }

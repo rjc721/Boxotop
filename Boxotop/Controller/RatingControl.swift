@@ -62,6 +62,7 @@ protocol RatingControlDelegate {
         if selectedRating == rating {
             // If the selected star represents the current rating, reset the rating to 0.
             rating = 0
+            delegate?.saveRating(newRating: rating)
         } else {
             // Otherwise set the rating to the selected star
             rating = selectedRating
@@ -86,7 +87,7 @@ protocol RatingControlDelegate {
         let emptyStar = UIImage(named:"emptyStar", in: bundle, compatibleWith: self.traitCollection)
         let highlightedStar = UIImage(named:"highlightedStar", in: bundle, compatibleWith: self.traitCollection)
         
-        for index in 0..<starCount {
+        for _ in 0..<starCount {
             // Create the button
             let button = UIButton()
             
@@ -100,10 +101,7 @@ protocol RatingControlDelegate {
             button.translatesAutoresizingMaskIntoConstraints = false
             button.heightAnchor.constraint(equalToConstant: starSize.height).isActive = true
             button.widthAnchor.constraint(equalToConstant: starSize.width).isActive = true
-            
-            // Set the accessibility label
-            button.accessibilityLabel = "Set \(index + 1) star rating"
-            
+          
             // Setup the button action
             button.addTarget(self, action: #selector(RatingControl.ratingButtonTapped(button:)), for: .touchUpInside)
             

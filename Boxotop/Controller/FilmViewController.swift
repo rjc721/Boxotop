@@ -8,8 +8,9 @@
 
 import UIKit
 import RealmSwift
+import SafariServices
 
-class FilmViewController: UIViewController {
+class FilmViewController: UIViewController, SFSafariViewControllerDelegate {
     
     var film: Film?
     let realm = try! Realm()
@@ -56,9 +57,12 @@ class FilmViewController: UIViewController {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let webAction = UIAlertAction(title: "Visit Page on IMDB", style: .default) { (action) in
             
-            self.performSegue(withIdentifier: "showWeb", sender: nil)
-        }
-        let showtimesAction = UIAlertAction(title: "Showtimes Near Me", style: .default) { (action) in
+            let baseURL = "https://www.imdb.com/title/"
+            let imdbURL = URL(string: baseURL + self.film!.imdbID) ?? URL(string: "https://www.google.com")
+            
+            let safariVC = SFSafariViewController(url: imdbURL!)        //Default to Google if failure
+            self.present(safariVC, animated: true, completion: nil)
+            safariVC.delegate = self
             
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
@@ -66,7 +70,6 @@ class FilmViewController: UIViewController {
         }
         
         alert.addAction(webAction)
-        alert.addAction(showtimesAction)
         alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
