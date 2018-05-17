@@ -30,7 +30,7 @@ class FilmViewController: UIViewController, SFSafariViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         starRatingControl.delegate = self
-        
+     
         if let film = film {
             filmTitleLabel.text = film.title
             releasedDateLabel.text = film.releaseDate

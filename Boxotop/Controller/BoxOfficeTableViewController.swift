@@ -45,6 +45,7 @@ class BoxOfficeTableViewController: UITableViewController {
         guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
         navBar.barTintColor = navBarGreen
         navBar.tintColor = UIColor.flatBlack()
+        navBar.titleTextAttributes = [NSAttributedStringKey.font : UIFont(name: "Futura-Bold", size: 24.0)!]
         searchBar.barTintColor = navBarGreen
         tableView.rowHeight = 80.0
         
