@@ -5,6 +5,9 @@
 //  Created by Ryan Chingway on 5/14/18.
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
+//  Use of Movieglu API is Restricted to 75 Requests
+//  If limit is reached, uncomment lines 33 and 218, comment lines 207 through 216
+//  to use Movies Array as substitute for titles returned from Movieglu
 
 import UIKit
 import ChameleonFramework
@@ -27,7 +30,7 @@ class BoxOfficeTableViewController: UITableViewController {
     let movieDBAPIHandler = OpenMDBAPIHandler()
     let movieJSONParser = OpenMDBJSONParser()
     
-    var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]
+    //var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -201,18 +204,18 @@ class BoxOfficeTableViewController: UITableViewController {
         let movieAPIHandler = MoviegluAPIHandler()
         let moviegluParser = MoviegluJSONParser()
         
-//        movieAPIHandler.getNowPlayingFilms { (json, error) in
-//            if error != nil {
-//                print("Movieglu API Error: \(error!)")
-//            } else {
-//                if let boxOfficeJSON = json {
-//                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
-//                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
-//                }
-//            }
-//        }
+        movieAPIHandler.getNowPlayingFilms { (json, error) in
+            if error != nil {
+                print("Movieglu API Error: \(error!)")
+            } else {
+                if let boxOfficeJSON = json {
+                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
+                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
+                }
+            }
+        }
         
-        searchOMDB(movieTitles: movies, searchType: .boxOffice)
+        //searchOMDB(movieTitles: movies, searchType: .boxOffice)   //If Movieglu API request limit reached
     }
     
     //MARK: - Open Movie Database API and JSON Parsing
