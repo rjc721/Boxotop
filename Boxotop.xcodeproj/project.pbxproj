@@ -18,11 +18,11 @@
 		1879B17E20AC9626007D6B72 /* SearchResultOMDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */; };
 		1879B18020AD1B54007D6B72 /* OpenMDBAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B17F20AD1B54007D6B72 /* OpenMDBAPIHandler.swift */; };
 		1879B18220AD1D03007D6B72 /* MoviegluAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18120AD1D03007D6B72 /* MoviegluAPIHandler.swift */; };
-		1879B18420AD1D7B007D6B72 /* MoviegluJSONParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18320AD1D7B007D6B72 /* MoviegluJSONParser.swift */; };
 		1879B18620AD1E84007D6B72 /* SearchRelevanceChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */; };
 		1879B18820AD1F6E007D6B72 /* OpenMDBJSONParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18720AD1F6E007D6B72 /* OpenMDBJSONParser.swift */; };
 		1879B18A20AD354A007D6B72 /* SearchType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18920AD354A007D6B72 /* SearchType.swift */; };
 		1879B18C20AD4750007D6B72 /* DuplicateFilmChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18B20AD4750007D6B72 /* DuplicateFilmChecker.swift */; };
+		18E730A720B479090090F1E6 /* MoviegluResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730A620B479090090F1E6 /* MoviegluResponse.swift */; };
 		1F06D5502E3FB1289683BC07 /* Pods_Boxotop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */; };
 /* End PBXBuildFile section */
 
@@ -40,11 +40,11 @@
 		1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultOMDB.swift; sourceTree = "<group>"; };
 		1879B17F20AD1B54007D6B72 /* OpenMDBAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMDBAPIHandler.swift; sourceTree = "<group>"; };
 		1879B18120AD1D03007D6B72 /* MoviegluAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviegluAPIHandler.swift; sourceTree = "<group>"; };
-		1879B18320AD1D7B007D6B72 /* MoviegluJSONParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviegluJSONParser.swift; sourceTree = "<group>"; };
 		1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRelevanceChecker.swift; sourceTree = "<group>"; };
 		1879B18720AD1F6E007D6B72 /* OpenMDBJSONParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMDBJSONParser.swift; sourceTree = "<group>"; };
 		1879B18920AD354A007D6B72 /* SearchType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchType.swift; sourceTree = "<group>"; };
 		1879B18B20AD4750007D6B72 /* DuplicateFilmChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateFilmChecker.swift; sourceTree = "<group>"; };
+		18E730A620B479090090F1E6 /* MoviegluResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviegluResponse.swift; sourceTree = "<group>"; };
 		A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Boxotop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE160F9E987AC24897A68BBC /* Pods-Boxotop.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.release.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.release.xcconfig"; sourceTree = "<group>"; };
 		E3E78211947423061F1DA089 /* Pods-Boxotop.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.debug.xcconfig"; sourceTree = "<group>"; };
@@ -109,7 +109,6 @@
 				1804756E20AA51580090DE98 /* FilmViewController.swift */,
 				1879B17B20ABA419007D6B72 /* RatingControl.swift */,
 				1879B18120AD1D03007D6B72 /* MoviegluAPIHandler.swift */,
-				1879B18320AD1D7B007D6B72 /* MoviegluJSONParser.swift */,
 				1879B17F20AD1B54007D6B72 /* OpenMDBAPIHandler.swift */,
 				1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */,
 				1879B18720AD1F6E007D6B72 /* OpenMDBJSONParser.swift */,
@@ -124,6 +123,7 @@
 			children = (
 				1804758020AA52BB0090DE98 /* Film.swift */,
 				1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */,
+				18E730A620B479090090F1E6 /* MoviegluResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -275,8 +275,8 @@
 				1879B17C20ABA419007D6B72 /* RatingControl.swift in Sources */,
 				1879B18C20AD4750007D6B72 /* DuplicateFilmChecker.swift in Sources */,
 				1879B18220AD1D03007D6B72 /* MoviegluAPIHandler.swift in Sources */,
+				18E730A720B479090090F1E6 /* MoviegluResponse.swift in Sources */,
 				1804756D20AA51580090DE98 /* AppDelegate.swift in Sources */,
-				1879B18420AD1D7B007D6B72 /* MoviegluJSONParser.swift in Sources */,
 				1879B18A20AD354A007D6B72 /* SearchType.swift in Sources */,
 				1879B18820AD1F6E007D6B72 /* OpenMDBJSONParser.swift in Sources */,
 				1879B18020AD1B54007D6B72 /* OpenMDBAPIHandler.swift in Sources */,

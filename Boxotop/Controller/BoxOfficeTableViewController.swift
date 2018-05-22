@@ -30,6 +30,8 @@ class BoxOfficeTableViewController: UITableViewController {
     let movieDBAPIHandler = OpenMDBAPIHandler()
     let movieJSONParser = OpenMDBJSONParser()
     
+    let imageCache = NSCache<NSString, UIImage>()
+    
     //var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
@@ -178,12 +180,20 @@ class BoxOfficeTableViewController: UITableViewController {
                 cell.textLabel?.text = cellText
             }
             if tableViewDisplayFilms!.count > 0 {      //Case - displaying films like normal or filtered
-                cell.textLabel?.text = tableViewDisplayFilms![indexPath.row].title
+                let film = tableViewDisplayFilms![indexPath.row]
+                
+                cell.textLabel?.text = film.title
                 cell.textLabel?.numberOfLines = 0
                 cell.textLabel?.lineBreakMode = .byWordWrapping
                 cell.isUserInteractionEnabled = true
-                cell.imageView?.image = UIImage(data: tableViewDisplayFilms![indexPath.row].posterImage) ?? #imageLiteral(resourceName: "defaultPhoto")
                 
+                if let cachedImage = imageCache.object(forKey: NSString(string: film.imdbID)) {
+                    cell.imageView?.image = cachedImage
+                } else {
+                    let imageToCache = UIImage(data: film.posterImage) ?? #imageLiteral(resourceName: "defaultPhoto")
+                    cell.imageView?.image = imageToCache
+                    imageCache.setObject(imageToCache, forKey: NSString(string: film.imdbID))
+                }
             }
         } else {                                //Case - Films not yet loaded at launch
             cell.textLabel?.numberOfLines = 0
@@ -202,16 +212,15 @@ class BoxOfficeTableViewController: UITableViewController {
     
     func loadBoxOfficeFilms() {
         let movieAPIHandler = MoviegluAPIHandler()
-        let moviegluParser = MoviegluJSONParser()
         
-        movieAPIHandler.getNowPlayingFilms { (json, error) in
-            if error != nil {
-                print("Movieglu API Error: \(error!)")
+        movieAPIHandler.getNowPlayingFilms { (titles, err) in
+            
+            if err == nil {
+                guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
+                self.searchOMDB(movieTitles: titles, searchType: .boxOffice)
+                
             } else {
-                if let boxOfficeJSON = json {
-                    let movies = moviegluParser.decodeMovieGluJSON(boxOfficeJSON)
-                    self.searchOMDB(movieTitles: movies, searchType: .boxOffice)
-                }
+                fatalError("Movieglu Error: \(String(describing: err))")
             }
         }
         
