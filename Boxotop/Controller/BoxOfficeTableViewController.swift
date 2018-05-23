@@ -6,7 +6,7 @@
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
 //  Use of Movieglu API is Restricted to 75 Requests
-//  If limit is reached, uncomment lines 34 and 227, comment lines 214 through 225
+//  If limit is reached, uncomment lines 35 and 271, comment lines 258 through 269
 //  to use Movies Array as substitute for titles returned from Movieglu
 
 import UIKit
@@ -19,6 +19,7 @@ class BoxOfficeTableViewController: UITableViewController {
     var boxOfficeFilms: Results<Film>?          //Contains movies Now Playing
     var tableViewDisplayFilms: Results<Film>?   //Contains movies being shown in table
     var filmDatabase: Results<Film>?            //Complete database
+    var searchHistory: Results<SearchHistoryItem>?  //Search history
     
     //Green colors from the test design documentation from "Elite Design"
     let navBarGreen = UIColor(red: 0.36, green: 0.62, blue: 0.255, alpha: 1)
@@ -60,6 +61,7 @@ class BoxOfficeTableViewController: UITableViewController {
             filmDatabase = realm.objects(Film.self)
             boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
             tableViewDisplayFilms = boxOfficeFilms
+            searchHistory = realm.objects(SearchHistoryItem.self)
         }
     }
     
@@ -102,11 +104,28 @@ class BoxOfficeTableViewController: UITableViewController {
             self.tableView.reloadData()
         }
         let historyAction = UIAlertAction(title: "Search History", style: .default) { (action) in
-            self.tableViewDisplayFilms = self.filmDatabase?.filter("isNowPlaying == %@", false).sorted(byKeyPath: "title")
             self.tableDisplayType = .searchHistory
             self.searchBar.text = ""
             self.searchBar.resignFirstResponder()
             self.tableView.reloadData()
+        }
+        let deleteAction = UIAlertAction(title: "Delete Search History", style: .destructive) { (action) in
+            
+            let searchItems = self.searchHistory
+            
+            if searchItems != nil {
+                
+                DispatchQueue.main.async {
+                    do {
+                        try self.realm.write {
+                            self.realm.delete(searchItems!)
+                            self.tableView.reloadData()
+                        }
+                    } catch let error {
+                        print("Realm delete error: \(error)")
+                    }
+                }
+            }
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
             self.dismiss(animated: true, completion: nil)
@@ -115,6 +134,11 @@ class BoxOfficeTableViewController: UITableViewController {
         alert.addAction(nowPlayingAction)
         alert.addAction(reviewedAlert)
         alert.addAction(historyAction)
+        
+        if let searchCount = searchHistory?.count, searchCount > 0 {
+            alert.addAction(deleteAction)
+        }
+        
         alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
@@ -145,12 +169,20 @@ class BoxOfficeTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        if let filmCount = tableViewDisplayFilms?.count {
+        if tableDisplayType == .searchHistory {
+            if let searchCount = searchHistory?.count {
+                return searchCount  > 0 ? searchCount : 1 //Either search history or "no history" cell
+            }
+            return 1
             
-            return filmCount > 0 ? filmCount : 1    //List exists, show list OR Search cell
+        } else {
+            if let filmCount = tableViewDisplayFilms?.count {
+                
+                return filmCount > 0 ? filmCount : 1    //List exists, show list OR Search cell
+            }
+            
+            return 1        //List not loaded -> Show Loading cell
         }
-        
-        return 1        //List not loaded -> Show Loading cell
     }
     
     
@@ -158,49 +190,61 @@ class BoxOfficeTableViewController: UITableViewController {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "filmCell", for: indexPath)
         
-        if tableViewDisplayFilms != nil {
-            if tableViewDisplayFilms!.count == 0 {     //Case - filtered but did not find
-                cell.imageView?.image = nil
-                cell.textLabel?.numberOfLines = 0
-                cell.textLabel?.lineBreakMode = .byWordWrapping
-                cell.isUserInteractionEnabled = false
-                
-                var cellText = ""
-                switch tableDisplayType {
-                case .nowPlaying:
-                    cellText = "No films meet your filter terms. Hit Search to search for titles online!"
-                case .reviewed:
-                    cellText = "You haven't reviewed any films yet or your filter terms match no results."
-                case .searchHistory:
-                    cellText = "No films in search history match. Hit Search to find movies online!"
-                case .searchResults:
-                    cellText = "Search yielded no results"
-                }
-                cell.textLabel?.text = cellText
-            }
-            if tableViewDisplayFilms!.count > 0 {      //Case - displaying films like normal or filtered
-                let film = tableViewDisplayFilms![indexPath.row]
-                
-                cell.textLabel?.text = film.title
-                cell.textLabel?.numberOfLines = 0
-                cell.textLabel?.lineBreakMode = .byWordWrapping
-                cell.isUserInteractionEnabled = true
-                
-                if let cachedImage = imageCache.object(forKey: NSString(string: film.imdbID)) {
-                    cell.imageView?.image = cachedImage
-                } else {
-                    let imageToCache = UIImage(data: film.posterImage) ?? #imageLiteral(resourceName: "defaultPhoto")
-                    cell.imageView?.image = imageToCache
-                    imageCache.setObject(imageToCache, forKey: NSString(string: film.imdbID))
-                }
-            }
-        } else {                                //Case - Films not yet loaded at launch
+        if tableDisplayType == .searchHistory {
+            cell.imageView?.image = nil
             cell.textLabel?.numberOfLines = 0
             cell.textLabel?.lineBreakMode = .byWordWrapping
-            cell.textLabel?.text = "Loading Data...Make sure you have an Internet connection"
             cell.isUserInteractionEnabled = false
+            
+            if searchHistory == nil || searchHistory?.count == 0 {
+                cell.textLabel?.text = "Your search history is empty, use Search bar to find your favorite movies!"
+            } else {
+                cell.textLabel?.text = searchHistory![indexPath.row].searchQuery
+            }
+        } else {
+            if tableViewDisplayFilms != nil {
+                if tableViewDisplayFilms!.count == 0 {     //Case - filtered but did not find
+                    cell.imageView?.image = nil
+                    cell.textLabel?.numberOfLines = 0
+                    cell.textLabel?.lineBreakMode = .byWordWrapping
+                    cell.isUserInteractionEnabled = false
+                    
+                    var cellText = ""
+                    switch tableDisplayType {
+                    case .nowPlaying:
+                        cellText = "No films meet your filter terms. Hit Search to search for titles online!"
+                    case .reviewed:
+                        cellText = "You haven't reviewed any films yet or your filter terms match no results."
+                    case .searchResults:
+                        cellText = "Search yielded no results"
+                    default: break
+                    }
+                    cell.textLabel?.text = cellText
+                }
+                if tableViewDisplayFilms!.count > 0 {      //Case - displaying films like normal or filtered
+                    let film = tableViewDisplayFilms![indexPath.row]
+                    
+                    cell.textLabel?.text = film.title
+                    cell.textLabel?.numberOfLines = 0
+                    cell.textLabel?.lineBreakMode = .byWordWrapping
+                    cell.isUserInteractionEnabled = true
+                    
+                    if let cachedImage = imageCache.object(forKey: NSString(string: film.imdbID)) {
+                        cell.imageView?.image = cachedImage
+                    } else {
+                        let imageToCache = UIImage(data: film.posterImage) ?? #imageLiteral(resourceName: "defaultPhoto")
+                        cell.imageView?.image = imageToCache
+                        imageCache.setObject(imageToCache, forKey: NSString(string: film.imdbID))
+                    }
+                }
+            } else {                                //Case - Films not yet loaded at launch
+                cell.textLabel?.numberOfLines = 0
+                cell.textLabel?.lineBreakMode = .byWordWrapping
+                cell.textLabel?.text = "Loading Data...Make sure you have an Internet connection"
+                cell.isUserInteractionEnabled = false
+            }
         }
-        
+    
         cell.backgroundColor = ((indexPath.row % 2) == 1) ? tableCellGreen : UIColor.white
         
         return cell
@@ -339,6 +383,19 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
         guard let searchQuery = searchBar.text else {fatalError("Search bar Text is nil?")}
         
         if !searchQuery.isEmpty {
+            
+            let searchItem = SearchHistoryItem()
+            searchItem.searchQuery = searchBar.text!
+            
+            do {
+                try realm.write {
+                    realm.add(searchItem)
+                    searchHistory = realm.objects(SearchHistoryItem.self)
+                }
+            } catch let error {
+                print("Saving search item error: \(error)")
+            }
+            
             SVProgressHUD.show()
             tableTypeBeforeSearch = tableDisplayType
             tableDisplayType = .searchResults
@@ -360,8 +417,6 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
             tableViewDisplayFilms = boxOfficeFilms?.filter(filterPredicate).sorted(byKeyPath: "title")
         case .reviewed:
             tableViewDisplayFilms = filmDatabase?.filter("userRating > %@", 0).filter(filterPredicate).sorted(byKeyPath: "title")
-        case .searchHistory:
-            tableViewDisplayFilms = filmDatabase?.filter("isNowPlaying == %@", false).filter(filterPredicate).sorted(byKeyPath: "title")
         default: break
         }
         
@@ -379,11 +434,8 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
                 tableViewDisplayFilms = boxOfficeFilms
             case .reviewed:
                 tableViewDisplayFilms = filmDatabase?.filter("userRating > %@", 0).sorted(byKeyPath: "title")
-            case .searchHistory:
-                tableViewDisplayFilms = filmDatabase?.filter("isNowPlaying == %@", false).sorted(byKeyPath: "title")
             default: break
             }
-            
             tableView.reloadData()
         }
     }

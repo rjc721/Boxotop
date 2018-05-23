@@ -25,6 +25,7 @@
 		18E730A720B479090090F1E6 /* MoviegluResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730A620B479090090F1E6 /* MoviegluResponse.swift */; };
 		18E730A920B4CA520090F1E6 /* OmdbResponseToS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */; };
 		18E730AB20B4D9A30090F1E6 /* OmdbIDResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */; };
+		18E730AD20B5266A0090F1E6 /* SearchHistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730AC20B5266A0090F1E6 /* SearchHistoryItem.swift */; };
 		1F06D5502E3FB1289683BC07 /* Pods_Boxotop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +50,7 @@
 		18E730A620B479090090F1E6 /* MoviegluResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviegluResponse.swift; sourceTree = "<group>"; };
 		18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmdbResponseToS.swift; sourceTree = "<group>"; };
 		18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmdbIDResponse.swift; sourceTree = "<group>"; };
+		18E730AC20B5266A0090F1E6 /* SearchHistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryItem.swift; sourceTree = "<group>"; };
 		A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Boxotop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE160F9E987AC24897A68BBC /* Pods-Boxotop.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.release.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.release.xcconfig"; sourceTree = "<group>"; };
 		E3E78211947423061F1DA089 /* Pods-Boxotop.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.debug.xcconfig"; sourceTree = "<group>"; };
@@ -125,11 +127,12 @@
 			isa = PBXGroup;
 			children = (
 				1804758020AA52BB0090DE98 /* Film.swift */,
-				1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */,
+				18E730AC20B5266A0090F1E6 /* SearchHistoryItem.swift */,
 				18E730A620B479090090F1E6 /* MoviegluResponse.swift */,
 				18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */,
-				1879B18920AD354A007D6B72 /* SearchType.swift */,
 				18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */,
+				1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */,
+				1879B18920AD354A007D6B72 /* SearchType.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -276,6 +279,7 @@
 				1879B17C20ABA419007D6B72 /* RatingControl.swift in Sources */,
 				1879B18C20AD4750007D6B72 /* DuplicateFilmChecker.swift in Sources */,
 				1879B18220AD1D03007D6B72 /* MoviegluAPIHandler.swift in Sources */,
+				18E730AD20B5266A0090F1E6 /* SearchHistoryItem.swift in Sources */,
 				18E730A720B479090090F1E6 /* MoviegluResponse.swift in Sources */,
 				1804756D20AA51580090DE98 /* AppDelegate.swift in Sources */,
 				1879B18A20AD354A007D6B72 /* SearchType.swift in Sources */,
@@ -429,7 +433,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G9X2BJN5A2;
 				INFOPLIST_FILE = Boxotop/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.ryanchingway.Boxotop;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
@@ -445,7 +452,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G9X2BJN5A2;
 				INFOPLIST_FILE = Boxotop/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.ryanchingway.Boxotop;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;

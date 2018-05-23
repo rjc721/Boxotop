@@ -5,6 +5,7 @@
 //  Created by Ryan Chingway on 5/14/18.
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
+//  Film objects stored in realm, used to populate tableview
 
 import Foundation
 import RealmSwift

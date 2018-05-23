@@ -6,7 +6,7 @@
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
 //  This search result characterizes the second type of OMDB search:
-//  a search by unique IMDB ID
+//  a search by unique IMDB ID. Use this response to create Film objects.
 
 import Foundation
 
