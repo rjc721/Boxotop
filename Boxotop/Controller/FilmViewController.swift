@@ -25,10 +25,13 @@ class FilmViewController: UIViewController, SFSafariViewControllerDelegate {
     @IBOutlet weak var tomatoRatingLabel: UILabel!
     @IBOutlet weak var imdbRatingLabel: UILabel!
     @IBOutlet weak var starRatingControl: RatingControl!
+    @IBOutlet weak var mpaaImageView: UIImageView!
+    @IBOutlet weak var mpaaRatingNALabel: UILabel!
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        mpaaRatingNALabel.isHidden = true
         starRatingControl.delegate = self
      
         if let film = film {
@@ -46,6 +49,22 @@ class FilmViewController: UIViewController, SFSafariViewControllerDelegate {
                 posterImageView.image = poster
             } else {
                 posterImageView.image = #imageLiteral(resourceName: "defaultPhoto")
+            }
+            
+            switch film.ratingMPAA {
+            case "G":
+                mpaaImageView.image = UIImage(named: "G-Rated")
+            case "PG":
+                mpaaImageView.image = UIImage(named: "PG-Rated")
+            case "PG-13":
+                mpaaImageView.image = UIImage(named: "PG-13 Rated")
+            case "R":
+                mpaaImageView.image = UIImage(named: "R-Rated")
+            case "NC-17":
+                mpaaImageView.image = UIImage(named: "NC-17 Rated")
+            default:
+                mpaaImageView.image = nil
+                mpaaRatingNALabel.isHidden = false
             }
         }
         
