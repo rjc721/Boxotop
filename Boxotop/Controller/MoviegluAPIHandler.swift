@@ -5,6 +5,10 @@
 //  Created by Ryan Chingway on 5/16/18.
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
+//  Movieglu API provides movies now playing in theaters.
+//  We are using a default value of 15 films specified in
+//  in the MOVIE GLU URL "n = 15". These results are then
+//  passed to the Open Movie Database for further info.
 
 import Foundation
 
@@ -28,28 +32,33 @@ class MoviegluAPIHandler {
         var nowPlayingFilmTitles = [String]()
         
         URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
-       
-            guard let data = data else {fatalError("Could not set data")}
             
-            do {
-                let jsonResponse = try JSONDecoder().decode(MoviegluResponse.self, from: data)
+            if error == nil {
                 
-                if jsonResponse.status.state == "OK" {
+                guard let data = data else {fatalError("Could not set data")}
+                
+                do {
+                    let jsonResponse = try JSONDecoder().decode(MoviegluResponse.self, from: data)
                     
-                    for film in jsonResponse.films {
-                        nowPlayingFilmTitles.append(film.film_name)
-                        print("Added film: \(film.film_name)")
+                    if jsonResponse.status.state == "OK" {
+                        
+                        for film in jsonResponse.films {
+                            nowPlayingFilmTitles.append(film.film_name)
+                          
+                        }
+                        
+                        completionHandler(nowPlayingFilmTitles, nil)
+                        
+                    } else {
+                        fatalError("Error, possibly ran out of API call requests (limit is 70). JSON State: \(jsonResponse.status.state)")
                     }
                     
-                    completionHandler(nowPlayingFilmTitles, nil)
-                    
-                } else {
-                    fatalError("Error, possibly ran out of API call requests (limit is 70). JSON State: \(jsonResponse.status.state)")
+                } catch let err {
+                    completionHandler(nil, err)
                 }
                 
-            } catch let err {
-                completionHandler(nil, err)
-            }
+            } else { fatalError("Error returned on URL Session with Movieglu API")}
+       
         }.resume()
         
     }

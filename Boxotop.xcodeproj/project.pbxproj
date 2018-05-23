@@ -19,10 +19,12 @@
 		1879B18020AD1B54007D6B72 /* OpenMDBAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B17F20AD1B54007D6B72 /* OpenMDBAPIHandler.swift */; };
 		1879B18220AD1D03007D6B72 /* MoviegluAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18120AD1D03007D6B72 /* MoviegluAPIHandler.swift */; };
 		1879B18620AD1E84007D6B72 /* SearchRelevanceChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */; };
-		1879B18820AD1F6E007D6B72 /* OpenMDBJSONParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18720AD1F6E007D6B72 /* OpenMDBJSONParser.swift */; };
+		1879B18820AD1F6E007D6B72 /* FilmCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18720AD1F6E007D6B72 /* FilmCreator.swift */; };
 		1879B18A20AD354A007D6B72 /* SearchType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18920AD354A007D6B72 /* SearchType.swift */; };
 		1879B18C20AD4750007D6B72 /* DuplicateFilmChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1879B18B20AD4750007D6B72 /* DuplicateFilmChecker.swift */; };
 		18E730A720B479090090F1E6 /* MoviegluResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730A620B479090090F1E6 /* MoviegluResponse.swift */; };
+		18E730A920B4CA520090F1E6 /* OmdbResponseToS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */; };
+		18E730AB20B4D9A30090F1E6 /* OmdbIDResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */; };
 		1F06D5502E3FB1289683BC07 /* Pods_Boxotop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */; };
 /* End PBXBuildFile section */
 
@@ -41,10 +43,12 @@
 		1879B17F20AD1B54007D6B72 /* OpenMDBAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMDBAPIHandler.swift; sourceTree = "<group>"; };
 		1879B18120AD1D03007D6B72 /* MoviegluAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviegluAPIHandler.swift; sourceTree = "<group>"; };
 		1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRelevanceChecker.swift; sourceTree = "<group>"; };
-		1879B18720AD1F6E007D6B72 /* OpenMDBJSONParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMDBJSONParser.swift; sourceTree = "<group>"; };
+		1879B18720AD1F6E007D6B72 /* FilmCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilmCreator.swift; sourceTree = "<group>"; };
 		1879B18920AD354A007D6B72 /* SearchType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchType.swift; sourceTree = "<group>"; };
 		1879B18B20AD4750007D6B72 /* DuplicateFilmChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateFilmChecker.swift; sourceTree = "<group>"; };
 		18E730A620B479090090F1E6 /* MoviegluResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviegluResponse.swift; sourceTree = "<group>"; };
+		18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmdbResponseToS.swift; sourceTree = "<group>"; };
+		18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmdbIDResponse.swift; sourceTree = "<group>"; };
 		A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Boxotop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE160F9E987AC24897A68BBC /* Pods-Boxotop.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.release.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.release.xcconfig"; sourceTree = "<group>"; };
 		E3E78211947423061F1DA089 /* Pods-Boxotop.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.debug.xcconfig"; sourceTree = "<group>"; };
@@ -111,8 +115,7 @@
 				1879B18120AD1D03007D6B72 /* MoviegluAPIHandler.swift */,
 				1879B17F20AD1B54007D6B72 /* OpenMDBAPIHandler.swift */,
 				1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */,
-				1879B18720AD1F6E007D6B72 /* OpenMDBJSONParser.swift */,
-				1879B18920AD354A007D6B72 /* SearchType.swift */,
+				1879B18720AD1F6E007D6B72 /* FilmCreator.swift */,
 				1879B18B20AD4750007D6B72 /* DuplicateFilmChecker.swift */,
 			);
 			path = Controller;
@@ -124,6 +127,9 @@
 				1804758020AA52BB0090DE98 /* Film.swift */,
 				1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */,
 				18E730A620B479090090F1E6 /* MoviegluResponse.swift */,
+				18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */,
+				1879B18920AD354A007D6B72 /* SearchType.swift */,
+				18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -239,21 +245,15 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
-				"${BUILT_PRODUCTS_DIR}/ChameleonFramework/ChameleonFramework.framework",
 				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
 				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/SVProgressHUD/SVProgressHUD.framework",
-				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ChameleonFramework.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SVProgressHUD.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyJSON.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -268,6 +268,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1879B17E20AC9626007D6B72 /* SearchResultOMDB.swift in Sources */,
+				18E730A920B4CA520090F1E6 /* OmdbResponseToS.swift in Sources */,
 				1804756F20AA51580090DE98 /* FilmViewController.swift in Sources */,
 				1804758420AA64B10090DE98 /* BoxOfficeTableViewController.swift in Sources */,
 				1804758120AA52BB0090DE98 /* Film.swift in Sources */,
@@ -278,7 +279,8 @@
 				18E730A720B479090090F1E6 /* MoviegluResponse.swift in Sources */,
 				1804756D20AA51580090DE98 /* AppDelegate.swift in Sources */,
 				1879B18A20AD354A007D6B72 /* SearchType.swift in Sources */,
-				1879B18820AD1F6E007D6B72 /* OpenMDBJSONParser.swift in Sources */,
+				18E730AB20B4D9A30090F1E6 /* OmdbIDResponse.swift in Sources */,
+				1879B18820AD1F6E007D6B72 /* FilmCreator.swift in Sources */,
 				1879B18020AD1B54007D6B72 /* OpenMDBAPIHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -427,10 +429,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G9X2BJN5A2;
 				INFOPLIST_FILE = Boxotop/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ryanchingway.Boxotop;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
@@ -446,10 +445,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G9X2BJN5A2;
 				INFOPLIST_FILE = Boxotop/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ryanchingway.Boxotop;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;

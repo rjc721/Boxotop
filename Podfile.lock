@@ -1,40 +1,26 @@
 PODS:
-  - Alamofire (4.7.2)
-  - ChameleonFramework/Default (2.1.0)
-  - ChameleonFramework/Swift (2.1.0):
-    - ChameleonFramework/Default
   - Realm (3.5.0):
     - Realm/Headers (= 3.5.0)
   - Realm/Headers (3.5.0)
   - RealmSwift (3.5.0):
     - Realm (= 3.5.0)
   - SVProgressHUD (2.2.5)
-  - SwiftyJSON (4.1.0)
 
 DEPENDENCIES:
-  - Alamofire (~> 4.7)
-  - ChameleonFramework/Swift
   - RealmSwift
   - SVProgressHUD
-  - SwiftyJSON
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
-    - Alamofire
-    - ChameleonFramework
     - Realm
     - RealmSwift
     - SVProgressHUD
-    - SwiftyJSON
 
 SPEC CHECKSUMS:
-  Alamofire: e4fa87002c137ba2d8d634d2c51fabcda0d5c223
-  ChameleonFramework: d21a3cc247abfe5e37609a283a8238b03575cf64
   Realm: 0378021c424e4e2bd6a0e63b27881e929d9b9ad1
   RealmSwift: 3322562622fda2ad596985ead4d8d8be30cf838c
   SVProgressHUD: 1428aafac632c1f86f62aa4243ec12008d7a51d6
-  SwiftyJSON: c29297daf073d2aa016295d5809cdd68045c39b3
 
-PODFILE CHECKSUM: 7d00fe12ed1e19aa8c2bab4e4b167c080f996937
+PODFILE CHECKSUM: 3ff0fa15e090eac979cb4e0fb0e6a99806c37f93
 
 COCOAPODS: 1.5.0

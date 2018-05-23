@@ -5,6 +5,7 @@
 //  Created by Ryan Chingway on 5/15/18.
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
+//  Provides a 5-star rating control so user can rate films
 
 import UIKit
 

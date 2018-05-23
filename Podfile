@@ -6,9 +6,6 @@ target 'Boxotop' do
   use_frameworks!
 
   # Pods for Boxotop
-    pod 'SwiftyJSON'
     pod 'RealmSwift'
     pod 'SVProgressHUD'
-    pod 'ChameleonFramework/Swift'
-    pod 'Alamofire', '~> 4.7'
 end

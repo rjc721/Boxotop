@@ -6,11 +6,10 @@
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
 //  Use of Movieglu API is Restricted to 75 Requests
-//  If limit is reached, uncomment lines 33 and 218, comment lines 207 through 216
+//  If limit is reached, uncomment lines 34 and 227, comment lines 214 through 225
 //  to use Movies Array as substitute for titles returned from Movieglu
 
 import UIKit
-import ChameleonFramework
 import RealmSwift
 import SVProgressHUD
 
@@ -21,14 +20,14 @@ class BoxOfficeTableViewController: UITableViewController {
     var tableViewDisplayFilms: Results<Film>?   //Contains movies being shown in table
     var filmDatabase: Results<Film>?            //Complete database
     
-    let navBarGreen = UIColor(hexString: "5C9E41")      //Green colors from the test design documentation
-    let tableCellGreen = UIColor(hexString: "BFDBB3")   //given from "EliteDesign"
+    //Green colors from the test design documentation from "Elite Design"
+    let navBarGreen = UIColor(red: 0.36, green: 0.62, blue: 0.255, alpha: 1)
+    let tableCellGreen = UIColor(red: 0.75, green: 0.859, blue: 0.7, alpha: 1)
     
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
     
     let movieDBAPIHandler = OpenMDBAPIHandler()
-    let movieJSONParser = OpenMDBJSONParser()
     
     let imageCache = NSCache<NSString, UIImage>()
     
@@ -49,7 +48,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
         guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
         navBar.barTintColor = navBarGreen
-        navBar.tintColor = UIColor.flatBlack()
+        navBar.tintColor = UIColor.black
         navBar.titleTextAttributes = [NSAttributedStringKey.font : UIFont(name: "Futura-Bold", size: 24.0)!]
         searchBar.barTintColor = navBarGreen
         tableView.rowHeight = 80.0
@@ -96,7 +95,7 @@ class BoxOfficeTableViewController: UITableViewController {
             self.tableView.reloadData()
         }
         let reviewedAlert = UIAlertAction(title: "Reviewed Films", style: .default) { (action) in
-            self.tableViewDisplayFilms = self.filmDatabase?.filter("userRating > %@", 0)
+            self.tableViewDisplayFilms = self.filmDatabase?.filter("userRating > %@", 0).sorted(byKeyPath: "title")
             self.tableDisplayType = .reviewed
             self.searchBar.text = ""
             self.searchBar.resignFirstResponder()
@@ -208,17 +207,18 @@ class BoxOfficeTableViewController: UITableViewController {
     }
     
     
-    //MARK: - Movieglu API and JSON Parsing
+    //MARK: - Movieglu API
     
     func loadBoxOfficeFilms() {
-        let movieAPIHandler = MoviegluAPIHandler()
         
+        let movieAPIHandler = MoviegluAPIHandler()
+
         movieAPIHandler.getNowPlayingFilms { (titles, err) in
-            
+
             if err == nil {
                 guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
                 self.searchOMDB(movieTitles: titles, searchType: .boxOffice)
-                
+
             } else {
                 fatalError("Movieglu Error: \(String(describing: err))")
             }
@@ -230,22 +230,17 @@ class BoxOfficeTableViewController: UITableViewController {
     //MARK: - Open Movie Database API and JSON Parsing
     func searchOMDB(movieTitles: [String], searchType: SearchType) {
         
-        movieDBAPIHandler.searchOpenMDB(titles: movieTitles) { (json, movieTitle, error)  in
+        movieDBAPIHandler.searchOpenMDB(movieTitles: movieTitles) { (searchResultsArray, imdbIDsArray, error)  in
             if error != nil {
-                print("OMDB API Error finding \(movieTitle): \(error!)")
+                //Most likely, a film title not in Open Movie Database
+                print("OMDB API Error: \(error!)")
             } else {
-               
-                if let searchResultsJSON = json {
                     
-                    let (searchResults, idArray) = self.movieJSONParser.parseSearchResultsJSON(searchResultsJSON, movieTitle: movieTitle)
-                    
-                    switch searchType {
-                    case .boxOffice:
-                        self.checkForMostRelevant(in: searchResults)
-                    case .user:
-                        self.loadMoviesFromOMDB(using: idArray, searchType: .user)
-                       
-                    }
+                switch searchType {
+                case .boxOffice:
+                    self.checkForMostRelevant(in: searchResultsArray!)
+                case .user:
+                    self.loadMoviesFromOMDB(using: imdbIDsArray!, searchType: .user)
                 }
             }
         }
@@ -262,21 +257,25 @@ class BoxOfficeTableViewController: UITableViewController {
     }
     
     func loadMoviesFromOMDB(using imdbIDs: [String], searchType: SearchType) {
+        
+        let movieCreator = FilmCreator()
        
-        movieDBAPIHandler.loadFromOMDB(imdbIDs: imdbIDs) { (json, imdbID, error) in
+        movieDBAPIHandler.loadFromOMDB(with: imdbIDs) { (filmResults, imdbID, error) in
             if error != nil {
                 print("Error Loading imdbID: \(imdbID), \(error!)")
             } else {
               
-                if let loadResultsJSON = json {
-                    let newFilm = self.movieJSONParser.createFilm(from: loadResultsJSON, imdbID: imdbID, searchType: searchType)
+                guard let results = filmResults else { return }
+                
+                DispatchQueue.main.async {
+                    let newFilm = movieCreator.createFilm(from: results, imdbID: imdbID, searchType: searchType)
                     self.updateRealm(with: newFilm)
-                    
+                }
+                
                 }
             }
-        }
     }
-  
+    
     //MARK: - Database Methods - Realm
     
     func updateRealm(with film: Film) {
@@ -353,9 +352,7 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        
-        print(tableDisplayType)
-       
+     
         let filterPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         switch tableDisplayType {
@@ -381,7 +378,7 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
             case .nowPlaying:
                 tableViewDisplayFilms = boxOfficeFilms
             case .reviewed:
-                tableViewDisplayFilms = filmDatabase?.filter("userRating > %@", 0)
+                tableViewDisplayFilms = filmDatabase?.filter("userRating > %@", 0).sorted(byKeyPath: "title")
             case .searchHistory:
                 tableViewDisplayFilms = filmDatabase?.filter("isNowPlaying == %@", false).sorted(byKeyPath: "title")
             default: break

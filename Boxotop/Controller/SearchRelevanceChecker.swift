@@ -5,6 +5,11 @@
 //  Created by Ryan Chingway on 5/16/18.
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
+//  Because Movieglu API returns film titles, some of which may
+//  be duplicates, remakes, or similar to older films, this
+//  simplistic algorithm tries to find the best match. I give a
+//  "relevance score" simply based on Title and Year of release.
+
 
 import Foundation
 
