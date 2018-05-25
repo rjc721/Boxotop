@@ -26,6 +26,7 @@
 		18E730A920B4CA520090F1E6 /* OmdbResponseToS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */; };
 		18E730AB20B4D9A30090F1E6 /* OmdbIDResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */; };
 		18E730AD20B5266A0090F1E6 /* SearchHistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730AC20B5266A0090F1E6 /* SearchHistoryItem.swift */; };
+		18E730AF20B878DA0090F1E6 /* SearchResponseInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E730AE20B878DA0090F1E6 /* SearchResponseInterpreter.swift */; };
 		1F06D5502E3FB1289683BC07 /* Pods_Boxotop.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +52,7 @@
 		18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmdbResponseToS.swift; sourceTree = "<group>"; };
 		18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmdbIDResponse.swift; sourceTree = "<group>"; };
 		18E730AC20B5266A0090F1E6 /* SearchHistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryItem.swift; sourceTree = "<group>"; };
+		18E730AE20B878DA0090F1E6 /* SearchResponseInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResponseInterpreter.swift; sourceTree = "<group>"; };
 		A9DBE9D1885B54E509EBECA8 /* Pods_Boxotop.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Boxotop.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE160F9E987AC24897A68BBC /* Pods-Boxotop.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.release.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.release.xcconfig"; sourceTree = "<group>"; };
 		E3E78211947423061F1DA089 /* Pods-Boxotop.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boxotop.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Boxotop/Pods-Boxotop.debug.xcconfig"; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */,
 				1879B18720AD1F6E007D6B72 /* FilmCreator.swift */,
 				1879B18B20AD4750007D6B72 /* DuplicateFilmChecker.swift */,
+				18E730AE20B878DA0090F1E6 /* SearchResponseInterpreter.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -275,6 +278,7 @@
 				1804756F20AA51580090DE98 /* FilmViewController.swift in Sources */,
 				1804758420AA64B10090DE98 /* BoxOfficeTableViewController.swift in Sources */,
 				1804758120AA52BB0090DE98 /* Film.swift in Sources */,
+				18E730AF20B878DA0090F1E6 /* SearchResponseInterpreter.swift in Sources */,
 				1879B18620AD1E84007D6B72 /* SearchRelevanceChecker.swift in Sources */,
 				1879B17C20ABA419007D6B72 /* RatingControl.swift in Sources */,
 				1879B18C20AD4750007D6B72 /* DuplicateFilmChecker.swift in Sources */,

@@ -17,7 +17,7 @@ class OpenMDBAPIHandler {
     private let OMDB_URL = "http://www.omdbapi.com/"    //Open Movie DB API
     private let apiKeyQuery = URLQueryItem(name: "apikey", value: "9674d90")
 
-    func searchOpenMDB(movieTitles: [String], completionHandler: @escaping ([SearchResultOMDB]?, [String]?, Error?) -> ()) {
+    func searchOpenMDB(movieTitles: [String], completionHandler: @escaping (OmdbResponseToS?, String?, Error?) -> ()) {
         
         for movieTitle in movieTitles {
             
@@ -33,6 +33,7 @@ class OpenMDBAPIHandler {
             var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
             request.httpMethod = "GET"
             
+            
             URLSession.shared.dataTask(with: request) { (data, response, error) in
                 if error == nil {
                     
@@ -43,24 +44,8 @@ class OpenMDBAPIHandler {
                         
                         if jsonResponse.Response == "True" {
                             
-                            var searchResults = [SearchResultOMDB]()
-                            var searchIDResults = [String]()
-                            
-                            for film in jsonResponse.Search {
-                                
-                                let searchResult = SearchResultOMDB()
-                                searchResult.title = film.Title
-                                searchResult.imdbID = film.imdbID
-                                searchResult.yearReleased = film.Year
-                                searchResult.relevanceScore = 0
-                                searchResult.searchQuery = movieTitle
-                                
-                                searchIDResults.append(searchResult.imdbID)
-                                searchResults.append(searchResult)
-                            }
-                            
                             DispatchQueue.main.async {
-                                completionHandler(searchResults, searchIDResults, nil)
+                                completionHandler(jsonResponse, movieTitle, nil)
                             }
                         }
                         

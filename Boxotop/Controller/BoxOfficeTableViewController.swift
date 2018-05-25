@@ -28,7 +28,7 @@ class BoxOfficeTableViewController: UITableViewController {
     
     let imageCache = NSCache<NSString, UIImage>()
     
-  //  var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
+    var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -261,26 +261,26 @@ class BoxOfficeTableViewController: UITableViewController {
     
     func loadBoxOfficeFilms() {
         
-        let movieAPIHandler = MoviegluAPIHandler()
-
-        movieAPIHandler.getNowPlayingFilms { (titles, err) in
-
-            if err == nil {
-                guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
-                self.searchOMDB(movieTitles: titles, searchType: .boxOffice)
-
-            } else {
-                fatalError("Movieglu Error: \(String(describing: err))")
-            }
-        }
+//        let movieAPIHandler = MoviegluAPIHandler()
+//
+//        movieAPIHandler.getNowPlayingFilms { (titles, err) in
+//
+//            if err == nil {
+//                guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
+//                self.searchOMDB(movieTitles: titles, searchType: .boxOffice)
+//
+//            } else {
+//                fatalError("Movieglu Error: \(String(describing: err))")
+//            }
+//        }
         
-       // searchOMDB(movieTitles: movies, searchType: .boxOffice)   //If Movieglu API request limit reached
+        searchOMDB(movieTitles: movies, searchType: .boxOffice)   //If Movieglu API request limit reached
     }
     
     //MARK: - Open Movie Database API and JSON Parsing
     func searchOMDB(movieTitles: [String], searchType: SearchType) {
         
-        movieDBAPIHandler.searchOpenMDB(movieTitles: movieTitles) { (searchResultsArray, imdbIDsArray, error)  in
+        movieDBAPIHandler.searchOpenMDB(movieTitles: movieTitles) { (omdbResponse, movieTitle, error)  in
             if error != nil {
                 
                 print("URL Session error: \(error)")
@@ -289,12 +289,15 @@ class BoxOfficeTableViewController: UITableViewController {
                 self.tableView.isUserInteractionEnabled = true
                 
             } else {
+                
+                let searchInterpreter = SearchResponseInterpreter()
+                let (searchResultsArray, imdbIDsArray) = searchInterpreter.interpretResults(result: omdbResponse!, movieTitle: movieTitle!)
                     
                 switch searchType {
                 case .boxOffice:
-                    self.checkForMostRelevant(in: searchResultsArray!)
+                    self.checkForMostRelevant(in: searchResultsArray)
                 case .user:
-                    self.loadMoviesFromOMDB(using: imdbIDsArray!, searchType: .user)
+                    self.loadMoviesFromOMDB(using: imdbIDsArray, searchType: .user)
                 }
             }
         }
