@@ -30,12 +30,14 @@ class OpenMDBAPIHandler {
             url.queryItems = [apiKeyQuery, titleSearchQuery, typeOfSearchQuery]
             guard let convertedURL = url.url else {fatalError("URL could not be converted from NSURL")}
             
-            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
+            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 20)
             request.httpMethod = "GET"
             
             
             URLSession.shared.dataTask(with: request) { (data, response, error) in
                 if error == nil {
+                    
+                    print("Response: \(response)")
                     
                     guard let data = data else {fatalError("Could not set data")}
                     
@@ -44,9 +46,12 @@ class OpenMDBAPIHandler {
                         
                         if jsonResponse.Response == "True" {
                             
+                            URLSession.shared.dataTask(with: request).cancel()
+                            
                             DispatchQueue.main.async {
                                 completionHandler(jsonResponse, movieTitle, nil)
                             }
+                            
                         }
                         
                     } catch {
@@ -54,9 +59,13 @@ class OpenMDBAPIHandler {
                     }
                     
                 } else {
+                    
+                    URLSession.shared.dataTask(with: request).cancel()
+                    
                     DispatchQueue.main.async {
                         completionHandler(nil, nil, error)
                     }
+                    
                 }
             }.resume()
         }
@@ -76,6 +85,7 @@ class OpenMDBAPIHandler {
             var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
             request.httpMethod = "GET"
             
+            
             URLSession.shared.dataTask(with: request) { (data, response, error) in
                 
                 if error == nil {
@@ -88,6 +98,8 @@ class OpenMDBAPIHandler {
                         
                         if jsonResponse.Response == "True" {
                             
+                            URLSession.shared.dataTask(with: request).cancel()
+                            
                             DispatchQueue.main.async {
                                 completionHandler(jsonResponse, imdbID, nil)
                             }
@@ -97,6 +109,7 @@ class OpenMDBAPIHandler {
                         fatalError("Fatal error, JSON decoding in load from OMDB: error: \(err)")
                     }
                 } else {
+                    URLSession.shared.dataTask(with: request).cancel()
                     
                     DispatchQueue.main.async {
                         print("Error on URL Session -> OMDB \(error)")
