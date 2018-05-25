@@ -21,10 +21,6 @@ class BoxOfficeTableViewController: UITableViewController {
     var filmDatabase: Results<Film>?            //Complete database
     var searchHistory: Results<SearchHistoryItem>?  //Search history
     
-    //Green colors from the test design documentation from "Elite Design"
-    let navBarGreen = UIColor(red: 0.36, green: 0.62, blue: 0.255, alpha: 1)
-    let tableCellGreen = UIColor(red: 0.75, green: 0.859, blue: 0.7, alpha: 1)
-    
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
     
@@ -32,7 +28,7 @@ class BoxOfficeTableViewController: UITableViewController {
     
     let imageCache = NSCache<NSString, UIImage>()
     
-   // var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
+  //  var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -47,11 +43,8 @@ class BoxOfficeTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
-        navBar.barTintColor = navBarGreen
-        navBar.tintColor = UIColor.black
-        navBar.titleTextAttributes = [NSAttributedStringKey.font : UIFont(name: "Futura-Bold", size: 24.0)!]
-        searchBar.barTintColor = navBarGreen
+        setupNavBar()
+        
         tableView.rowHeight = 80.0
         
         if realm.isEmpty {
@@ -68,6 +61,18 @@ class BoxOfficeTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         tableView.reloadData()
+    }
+    
+    func setupNavBar() {
+        
+        //Green color from the test design documentation from "Elite Design"
+        let navBarGreen = UIColor(red: 0.36, green: 0.62, blue: 0.255, alpha: 1)
+        
+        guard let navBar = navigationController?.navigationBar else {fatalError("Nav controller does not exist")}
+        navBar.barTintColor = navBarGreen
+        navBar.tintColor = UIColor.black
+        navBar.titleTextAttributes = [NSAttributedStringKey.font : UIFont(name: "Futura-Bold", size: 24.0)!]
+        searchBar.barTintColor = navBarGreen
     }
     
     //MARK: - Refresh Button Tapped
@@ -189,6 +194,7 @@ class BoxOfficeTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "filmCell", for: indexPath)
+        let tableCellGreen = UIColor(red: 0.75, green: 0.859, blue: 0.7, alpha: 1)
         
         if tableDisplayType == .searchHistory {
             cell.imageView?.image = nil
@@ -216,7 +222,7 @@ class BoxOfficeTableViewController: UITableViewController {
                     case .reviewed:
                         cellText = "You haven't reviewed any films yet or your filter terms match no results."
                     case .searchResults:
-                        cellText = "Search yielded no results"
+                        cellText = "Search yielded no results or timed out, please try again."
                     default: break
                     }
                     cell.textLabel?.text = cellText
@@ -268,7 +274,7 @@ class BoxOfficeTableViewController: UITableViewController {
             }
         }
         
-        //searchOMDB(movieTitles: movies, searchType: .boxOffice)   //If Movieglu API request limit reached
+       // searchOMDB(movieTitles: movies, searchType: .boxOffice)   //If Movieglu API request limit reached
     }
     
     //MARK: - Open Movie Database API and JSON Parsing
@@ -276,8 +282,12 @@ class BoxOfficeTableViewController: UITableViewController {
         
         movieDBAPIHandler.searchOpenMDB(movieTitles: movieTitles) { (searchResultsArray, imdbIDsArray, error)  in
             if error != nil {
-                //Most likely, a film title not in Open Movie Database
-                print("OMDB API Error: \(error!)")
+                
+                print("URL Session error: \(error)")
+                
+                SVProgressHUD.dismiss()
+                self.tableView.isUserInteractionEnabled = true
+                
             } else {
                     
                 switch searchType {
@@ -306,7 +316,11 @@ class BoxOfficeTableViewController: UITableViewController {
        
         movieDBAPIHandler.loadFromOMDB(with: imdbIDs) { (filmResults, imdbID, error) in
             if error != nil {
-                print("Error Loading imdbID: \(imdbID), \(error!)")
+                print("URL Session error: \(error)")
+                
+                SVProgressHUD.dismiss()
+                self.tableView.isUserInteractionEnabled = true
+                
             } else {
               
                 guard let results = filmResults else { return }
@@ -347,6 +361,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
         //  If search bar is empty, we are loading Now Playing films
         //  Else: when a User search comes in, we want to display those results
+        
         if searchBar.text!.isEmpty {
             boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
             tableViewDisplayFilms = boxOfficeFilms
@@ -356,6 +371,7 @@ class BoxOfficeTableViewController: UITableViewController {
         }
         
         tableView.reloadData()
+        tableView.isUserInteractionEnabled = true
         SVProgressHUD.dismiss() //Dismiss Progress HUD, Load Complete
     }
 
@@ -389,14 +405,22 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
             
             do {
                 try realm.write {
+                    
+                    //only save rated films and now playing
+                    if let objectsToDelete = filmDatabase?.filter("isNowPlaying == %@ AND userRating == %@", false, 0) {
+                        realm.delete(objectsToDelete)
+                    }
+                    
                     realm.add(searchItem)
                     searchHistory = realm.objects(SearchHistoryItem.self)
+                    
                 }
             } catch let error {
                 print("Saving search item error: \(error)")
             }
             
             SVProgressHUD.show()
+            tableView.isUserInteractionEnabled = false
             tableTypeBeforeSearch = tableDisplayType
             tableDisplayType = .searchResults
             

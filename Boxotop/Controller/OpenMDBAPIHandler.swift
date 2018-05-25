@@ -23,18 +23,17 @@ class OpenMDBAPIHandler {
             
             let adjustedTitle = movieTitle.replacingOccurrences(of: " ", with: "-")
             
-            guard let url = NSURLComponents(string: OMDB_URL) else {fatalError("OMDB URL Error")}
-            
             let titleSearchQuery = URLQueryItem(name: "s", value: adjustedTitle)
             let typeOfSearchQuery = URLQueryItem(name: "type", value: "movie")
             
-            url.queryItems = [titleSearchQuery, typeOfSearchQuery, apiKeyQuery]
-            
+            guard let url = NSURLComponents(string: OMDB_URL) else {fatalError("OMDB URL Error")}
+            url.queryItems = [apiKeyQuery, titleSearchQuery, typeOfSearchQuery]
             guard let convertedURL = url.url else {fatalError("URL could not be converted from NSURL")}
             
+            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
+            request.httpMethod = "GET"
             
-            URLSession.shared.dataTask(with: convertedURL) { (data, response, error) in
-                
+            URLSession.shared.dataTask(with: request) { (data, response, error) in
                 if error == nil {
                     
                     guard let data = data else {fatalError("Could not set data")}
@@ -46,7 +45,7 @@ class OpenMDBAPIHandler {
                             
                             var searchResults = [SearchResultOMDB]()
                             var searchIDResults = [String]()
-
+                            
                             for film in jsonResponse.Search {
                                 
                                 let searchResult = SearchResultOMDB()
@@ -60,16 +59,20 @@ class OpenMDBAPIHandler {
                                 searchResults.append(searchResult)
                             }
                             
-                            completionHandler(searchResults, searchIDResults, nil)
-                            
+                            DispatchQueue.main.async {
+                                completionHandler(searchResults, searchIDResults, nil)
+                            }
                         }
                         
-                    } catch let err {
-                        completionHandler(nil, nil, err)
+                    } catch {
+                        print("OMDB Movie not found")
                     }
                     
-                } else { print("Error on URL Session -> OMDB")}
-                
+                } else {
+                    DispatchQueue.main.async {
+                        completionHandler(nil, nil, error)
+                    }
+                }
             }.resume()
         }
     }
@@ -79,15 +82,17 @@ class OpenMDBAPIHandler {
         
         for imdbID in imdbIDs {
             
-            guard let url = NSURLComponents(string: OMDB_URL) else {fatalError("OMDB URL Error")}
-            
             let idQuery = URLQueryItem(name: "i", value: imdbID)
-            url.queryItems = [idQuery, apiKeyQuery]
             
+            guard let url = NSURLComponents(string: OMDB_URL) else {fatalError("OMDB URL Error")}
+            url.queryItems = [apiKeyQuery, idQuery]
             guard let convertedURL = url.url else {fatalError("URL could not be converted from NSURL")}
             
-            URLSession.shared.dataTask(with: convertedURL) { (data, response, error) in
-               
+            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
+            request.httpMethod = "GET"
+            
+            URLSession.shared.dataTask(with: request) { (data, response, error) in
+                
                 if error == nil {
                     
                     guard let data = data else {fatalError("Could not set data")}
@@ -98,14 +103,21 @@ class OpenMDBAPIHandler {
                         
                         if jsonResponse.Response == "True" {
                             
-                            completionHandler(jsonResponse, imdbID, nil)
+                            DispatchQueue.main.async {
+                                completionHandler(jsonResponse, imdbID, nil)
+                            }
                         }
                         
                     } catch let err {
-                        completionHandler(nil, imdbID, err)
+                        fatalError("Fatal error, JSON decoding in load from OMDB: error: \(err)")
                     }
-                } else { print("Error on URL Session -> OMDB")}
-                
+                } else {
+                    
+                    DispatchQueue.main.async {
+                        print("Error on URL Session -> OMDB \(error)")
+                        completionHandler(nil, imdbID, error)
+                    }
+                }
             }.resume()
         }
     }
