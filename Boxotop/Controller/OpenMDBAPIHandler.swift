@@ -19,7 +19,11 @@ class OpenMDBAPIHandler {
 
     func searchOpenMDB(movieTitles: [String], completionHandler: @escaping (OmdbResponseToS?, String?, Error?) -> ()) {
         
+        var task: URLSessionDataTask?
+        
         for movieTitle in movieTitles {
+            
+            let session = URLSession(configuration: .default)
             
             let adjustedTitle = movieTitle.replacingOccurrences(of: " ", with: "-")
             
@@ -30,11 +34,8 @@ class OpenMDBAPIHandler {
             url.queryItems = [apiKeyQuery, titleSearchQuery, typeOfSearchQuery]
             guard let convertedURL = url.url else {fatalError("URL could not be converted from NSURL")}
             
-            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 20)
-            request.httpMethod = "GET"
-            
-            
-            URLSession.shared.dataTask(with: request) { (data, response, error) in
+            task = session.dataTask(with: convertedURL, completionHandler: { (data, response, error) in
+               
                 if error == nil {
                     
                     print("Response: \(response)")
@@ -45,8 +46,6 @@ class OpenMDBAPIHandler {
                         let jsonResponse = try JSONDecoder().decode(OmdbResponseToS.self, from: data)
                         
                         if jsonResponse.Response == "True" {
-                            
-                            URLSession.shared.dataTask(with: request).cancel()
                             
                             DispatchQueue.main.async {
                                 completionHandler(jsonResponse, movieTitle, nil)
@@ -60,63 +59,140 @@ class OpenMDBAPIHandler {
                     
                 } else {
                     
-                    URLSession.shared.dataTask(with: request).cancel()
-                    
                     DispatchQueue.main.async {
                         completionHandler(nil, nil, error)
                     }
                     
                 }
-            }.resume()
+            })
+            
+            task?.resume()
+            
+//            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 20)
+//            request.httpMethod = "GET"
+            
+            
+//            URLSession.shared.dataTask(with: request) { (data, response, error) in
+//                if error == nil {
+//
+//                    print("Response: \(response)")
+//
+//                    guard let data = data else {fatalError("Could not set data")}
+//
+//                    do {
+//                        let jsonResponse = try JSONDecoder().decode(OmdbResponseToS.self, from: data)
+//
+//                        if jsonResponse.Response == "True" {
+//
+//                            URLSession.shared.dataTask(with: request).cancel()
+//
+//                            DispatchQueue.main.async {
+//                                completionHandler(jsonResponse, movieTitle, nil)
+//                            }
+//
+//                        }
+//
+//                    } catch {
+//                        print("OMDB Movie not found")
+//                    }
+//
+//                } else {
+//
+//                    URLSession.shared.dataTask(with: request).cancel()
+//
+//                    DispatchQueue.main.async {
+//                        completionHandler(nil, nil, error)
+//                    }
+//
+//                }
+//            }.resume()
         }
     }
     
 
     func loadFromOMDB(with imdbIDs: [String], completionHandler: @escaping (OmdbIDResponse?, String, Error?) -> ()) {
         
+        var task: URLSessionDataTask?
+        
         for imdbID in imdbIDs {
             
-            let idQuery = URLQueryItem(name: "i", value: imdbID)
+            let session = URLSession(configuration: .default)
             
             guard let url = NSURLComponents(string: OMDB_URL) else {fatalError("OMDB URL Error")}
+            
+            let idQuery = URLQueryItem(name: "i", value: imdbID)
             url.queryItems = [apiKeyQuery, idQuery]
             guard let convertedURL = url.url else {fatalError("URL could not be converted from NSURL")}
             
-            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
-            request.httpMethod = "GET"
-            
-            
-            URLSession.shared.dataTask(with: request) { (data, response, error) in
-                
+            task = session.dataTask(with: convertedURL) { (data, response, error) in
                 if error == nil {
                     
                     guard let data = data else {fatalError("Could not set data")}
-                    
+
                     do {
-                        
+
                         let jsonResponse = try JSONDecoder().decode(OmdbIDResponse.self, from: data)
-                        
+
                         if jsonResponse.Response == "True" {
-                            
-                            URLSession.shared.dataTask(with: request).cancel()
-                            
+
                             DispatchQueue.main.async {
                                 completionHandler(jsonResponse, imdbID, nil)
                             }
                         }
-                        
+
                     } catch let err {
                         fatalError("Fatal error, JSON decoding in load from OMDB: error: \(err)")
                     }
                 } else {
-                    URLSession.shared.dataTask(with: request).cancel()
-                    
+
                     DispatchQueue.main.async {
                         print("Error on URL Session -> OMDB \(error)")
                         completionHandler(nil, imdbID, error)
                     }
                 }
-            }.resume()
+            }
+            
+            task?.resume()
+            
+            
+            
+            
+//
+//            var request = URLRequest(url: convertedURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
+//            request.httpMethod = "GET"
+            
+            
+//            URLSession.shared.dataTask(with: request) { (data, response, error) in
+//
+//                if error == nil {
+//
+//                    guard let data = data else {fatalError("Could not set data")}
+//
+//                    do {
+//
+//                        let jsonResponse = try JSONDecoder().decode(OmdbIDResponse.self, from: data)
+//
+//                        if jsonResponse.Response == "True" {
+//
+//                            URLSession.shared.dataTask(with: request).cancel()
+//
+//                            DispatchQueue.main.async {
+//                                completionHandler(jsonResponse, imdbID, nil)
+//                            }
+//                        }
+//
+//                    } catch let err {
+//                        fatalError("Fatal error, JSON decoding in load from OMDB: error: \(err)")
+//                    }
+//                } else {
+//                    URLSession.shared.dataTask(with: request).cancel()
+//
+//                    DispatchQueue.main.async {
+//                        print("Error on URL Session -> OMDB \(error)")
+//                        completionHandler(nil, imdbID, error)
+//                    }
+//                }
+//            }.resume()
         }
     }
 }

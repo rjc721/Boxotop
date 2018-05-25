@@ -317,7 +317,7 @@ class BoxOfficeTableViewController: UITableViewController {
         
         let movieCreator = FilmCreator()
        
-        movieDBAPIHandler.loadFromOMDB(with: imdbIDs) { (filmResults, imdbID, error) in
+        movieDBAPIHandler.loadFromOMDB(with: imdbIDs) { (jsonResult, imdbID, error) in
             if error != nil {
                 print("URL Session error: \(error)")
                 
@@ -326,12 +326,11 @@ class BoxOfficeTableViewController: UITableViewController {
                 
             } else {
               
-                guard let results = filmResults else { return }
-                
-                DispatchQueue.main.async {
-                    let newFilm = movieCreator.createFilm(from: results, imdbID: imdbID, searchType: searchType)
-                    self.updateRealm(with: newFilm)
-                }
+                guard let result = jsonResult else { return }
+               
+                let newFilm = movieCreator.createFilm(from: result, imdbID: imdbID, searchType: searchType)
+                self.updateRealm(with: newFilm)
+            
                 
                 }
             }
