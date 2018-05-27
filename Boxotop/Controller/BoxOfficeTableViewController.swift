@@ -13,7 +13,7 @@ import UIKit
 import RealmSwift
 import SVProgressHUD
 
-class BoxOfficeTableViewController: UITableViewController {
+class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     
     let realm = try! Realm()                    //Initiate Realm as database
     var boxOfficeFilms: Results<Film>?          //Contains movies Now Playing
@@ -24,11 +24,13 @@ class BoxOfficeTableViewController: UITableViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
     
+    var searchType: SearchType?
+    
     let movieDBAPIHandler = OpenMDBAPIHandler()
     
     let imageCache = NSCache<NSString, UIImage>()
     
-    var movies = ["Deadpool 2", "Avengers: Infinity War", "Sherlock Gnomes", "I Feel Pretty", "Life of the Party", "Breaking In", "The Guernsey Literary and Potato Peel Pie Society", "A Quiet Place", "Rampage", "Entebbe", "Peter Rabbit", "The Strangers: Prey at Night", "The Greatest Showman", "Tully", "Truth or Dare"]   //If Movieglu API request limit reached
+    //var movies = ["Solo: A Star Wars Story", "Deadpool 2", "Sherlock Gnomes", "Avengers: Infinity War", "Show Dogs", "I Feel Pretty", "Peter Rabbit", "On Chesil Beach", "Life of the Party", "Edie", "The Little Vampire", "A Quiet Place", "Breaking In", "The Greatest Showman", "Duck Duck Goose"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -42,6 +44,10 @@ class BoxOfficeTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        movieDBAPIHandler.delegate = self
+        
+        searchType = .boxOffice
         
         setupNavBar()
         
@@ -78,6 +84,8 @@ class BoxOfficeTableViewController: UITableViewController {
     //MARK: - Refresh Button Tapped
     
     @IBAction func refreshTapped(_ sender: UIBarButtonItem) {
+        
+        searchType = .boxOffice
         
         SVProgressHUD.show()
         tableDisplayType = .nowPlaying
@@ -261,44 +269,45 @@ class BoxOfficeTableViewController: UITableViewController {
     
     func loadBoxOfficeFilms() {
         
-//        let movieAPIHandler = MoviegluAPIHandler()
-//
-//        movieAPIHandler.getNowPlayingFilms { (titles, err) in
-//
-//            if err == nil {
-//                guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
-//                self.searchOMDB(movieTitles: titles, searchType: .boxOffice)
-//
-//            } else {
-//                fatalError("Movieglu Error: \(String(describing: err))")
-//            }
-//        }
+        //updateNowPlayingFlags()
         
-        searchOMDB(movieTitles: movies, searchType: .boxOffice)   //If Movieglu API request limit reached
+        let movieAPIHandler = MoviegluAPIHandler()
+
+        movieAPIHandler.getNowPlayingFilms { (titles, err) in
+
+            if err == nil {
+                guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
+
+                self.movieDBAPIHandler.searchOpenMDB(for: titles)
+
+            } else {
+                fatalError("Movieglu Error: \(String(describing: err))")
+            }
+        }
+        
+         //  movieDBAPIHandler.searchOpenMDB(for: movies) //If Movieglu API request limit reached
+        
     }
     
     //MARK: - Open Movie Database API and JSON Parsing
-    func searchOMDB(movieTitles: [String], searchType: SearchType) {
+   
+    func receivedOMDBSearchResults(result: OmdbResponseToS, movieTitle: String, isError: Bool) {
         
-        movieDBAPIHandler.searchOpenMDB(movieTitles: movieTitles) { (omdbResponse, movieTitle, error)  in
-            if error != nil {
-                
-                print("URL Session error: \(error)")
-                
-                SVProgressHUD.dismiss()
-                self.tableView.isUserInteractionEnabled = true
-                
-            } else {
-                
-                let searchInterpreter = SearchResponseInterpreter()
-                let (searchResultsArray, imdbIDsArray) = searchInterpreter.interpretResults(result: omdbResponse!, movieTitle: movieTitle!)
-                    
-                switch searchType {
-                case .boxOffice:
-                    self.checkForMostRelevant(in: searchResultsArray)
-                case .user:
-                    self.loadMoviesFromOMDB(using: imdbIDsArray, searchType: .user)
-                }
+        if isError {
+            
+            SVProgressHUD.dismiss()
+            self.tableView.isUserInteractionEnabled = true
+            
+        } else {
+            
+            let searchInterpreter = SearchResponseInterpreter()
+            let (searchResultsArray, imdbIDsArray) = searchInterpreter.interpretResults(result: result, movieTitle: movieTitle)
+            
+            switch searchType! {
+            case .boxOffice:
+                self.checkForMostRelevant(in: searchResultsArray)
+            case .user:
+                self.movieDBAPIHandler.loadFromOMDB(with: imdbIDsArray)
             }
         }
     }
@@ -310,30 +319,24 @@ class BoxOfficeTableViewController: UITableViewController {
         let searchChecker = SearchRelevanceChecker()
         let matchingFilm = searchChecker.check(results: results)
         
-        loadMoviesFromOMDB(using: [matchingFilm], searchType: .boxOffice)
+        movieDBAPIHandler.loadFromOMDB(with: [matchingFilm])
     }
-    
-    func loadMoviesFromOMDB(using imdbIDs: [String], searchType: SearchType) {
-        
-        let movieCreator = FilmCreator()
-       
-        movieDBAPIHandler.loadFromOMDB(with: imdbIDs) { (jsonResult, imdbID, error) in
-            if error != nil {
-                print("URL Session error: \(error)")
-                
-                SVProgressHUD.dismiss()
-                self.tableView.isUserInteractionEnabled = true
-                
-            } else {
-              
-                guard let result = jsonResult else { return }
-               
-                let newFilm = movieCreator.createFilm(from: result, imdbID: imdbID, searchType: searchType)
-                self.updateRealm(with: newFilm)
+  
+    func receivedOMDBLoadResults(result: OmdbIDResponse, imdbID: String, isError: Bool) {
+        if isError {
             
-                
-                }
-            }
+            SVProgressHUD.dismiss()
+            self.tableView.isUserInteractionEnabled = true
+            
+        } else {
+            
+            let movieCreator = FilmCreator()
+            
+            guard let type = searchType else {fatalError("Search type not set")}
+            
+            let newFilm = movieCreator.createFilm(from: result, imdbID: imdbID, searchType: type)
+            self.updateRealm(with: newFilm)
+        }
     }
     
     //MARK: - Database Methods - Realm
@@ -357,6 +360,23 @@ class BoxOfficeTableViewController: UITableViewController {
         }
         
         updateUI()
+    }
+    
+    //TODO: - Fix this now playing update
+    func updateNowPlayingFlags() {
+        
+        if boxOfficeFilms != nil {
+            do {
+                try realm.write {
+                    for film in boxOfficeFilms! {
+                        film.isNowPlaying = false   //reset now playing to most recent films
+                    }
+                }
+            } catch {
+                fatalError("Failed to reset Now Playing flags")
+            }
+            
+        }
     }
  
     func updateUI() {
@@ -398,6 +418,8 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
+        searchType = .user
+        
         guard let searchQuery = searchBar.text else {fatalError("Search bar Text is nil?")}
         
         if !searchQuery.isEmpty {
@@ -426,7 +448,7 @@ extension BoxOfficeTableViewController: UISearchBarDelegate {
             tableTypeBeforeSearch = tableDisplayType
             tableDisplayType = .searchResults
             
-            searchOMDB(movieTitles: [searchBar.text!], searchType: .user)
+            movieDBAPIHandler.searchOpenMDB(for: [searchBar.text!])
             
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()

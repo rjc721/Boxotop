@@ -46,7 +46,7 @@ class MoviegluAPIHandler {
                             nowPlayingFilmTitles.append(film.film_name)
                           
                         }
-                        
+                        print(nowPlayingFilmTitles)
                         completionHandler(nowPlayingFilmTitles, nil)
                         
                     } else {
