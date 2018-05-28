@@ -30,7 +30,7 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     
     let imageCache = NSCache<NSString, UIImage>()
     
-    //var movies = ["Solo: A Star Wars Story", "Deadpool 2", "Sherlock Gnomes", "Avengers: Infinity War", "Show Dogs", "I Feel Pretty", "Peter Rabbit", "On Chesil Beach", "Life of the Party", "Edie", "The Little Vampire", "A Quiet Place", "Breaking In", "The Greatest Showman", "Duck Duck Goose"]   //If Movieglu API request limit reached
+    //var movies = ["Solo: A Star Wars Story", "Deadpool 2", "Sherlock Gnomes", "Avengers: Infinity War", "Show Dogs", "I Feel Pretty", "Peter Rabbit", "On Chesil Beach", "Life of the Party", "The Little Vampire", "A Quiet Place", "The Greatest Showman", "Duck Duck Goose"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -45,23 +45,13 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        movieDBAPIHandler.delegate = self
-        
+        tableView.rowHeight = 80.0
         searchType = .boxOffice
         
+        movieDBAPIHandler.delegate = self
+        
         setupNavBar()
-        
-        tableView.rowHeight = 80.0
-        
-        if realm.isEmpty {
-            SVProgressHUD.show()    //Show loading to user
-            loadBoxOfficeFilms()    //Database empty on first use, load films
-        } else {
-            filmDatabase = realm.objects(Film.self)
-            boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
-            tableViewDisplayFilms = boxOfficeFilms
-            searchHistory = realm.objects(SearchHistoryItem.self)
-        }
+        loadDatabase()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -81,6 +71,18 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
         searchBar.barTintColor = navBarGreen
     }
     
+    func loadDatabase() {
+        if realm.isEmpty {
+            SVProgressHUD.show()    //Show loading to user
+            loadBoxOfficeFilms()    //Database empty on first use, load films
+        } else {
+            filmDatabase = realm.objects(Film.self)
+            boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
+            tableViewDisplayFilms = boxOfficeFilms
+            searchHistory = realm.objects(SearchHistoryItem.self)
+        }
+    }
+    
     //MARK: - Refresh Button Tapped
     
     @IBAction func refreshTapped(_ sender: UIBarButtonItem) {
@@ -92,7 +94,7 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
         searchBar.text = ""
         searchBar.resignFirstResponder()
         
-        loadBoxOfficeFilms()    //Refresh button reloads movies Now Playing
+        loadBoxOfficeFilms()    //Reloads movies Now Playing
     }
     
     //MARK: - Sort Button Tapped
@@ -269,7 +271,7 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     
     func loadBoxOfficeFilms() {
         
-        //updateNowPlayingFlags()
+        updateNowPlayingFlags()
         
         let movieAPIHandler = MoviegluAPIHandler()
 
@@ -285,7 +287,7 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
             }
         }
         
-         //  movieDBAPIHandler.searchOpenMDB(for: movies) //If Movieglu API request limit reached
+           //movieDBAPIHandler.searchOpenMDB(for: movies) //If Movieglu API request limit reached
         
     }
     
@@ -344,7 +346,9 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     func updateRealm(with film: Film) {
         
         let duplicateChecker = DuplicateFilmChecker()
-        let filmExistsInDatabase = duplicateChecker.searchDatabaseFor(film: film)
+        
+        guard let typeSearch = searchType else {fatalError("Search type unexpectedly nil")}
+        let filmExistsInDatabase = duplicateChecker.searchDatabaseFor(film: film, searchType: typeSearch)
         
         //If it doesn't exist, add it to database
         if !filmExistsInDatabase {
@@ -352,30 +356,30 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
                 try realm.write {
                     realm.add(film)
                     filmDatabase = realm.objects(Film.self)
-                    boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
+                    //boxOfficeFilms = filmDatabase?.filter("isNowPlaying == %@", true).sorted(byKeyPath: "title")
                 }
-            } catch {
-                fatalError("Error loading film into Realm")
-            }
+            } catch {fatalError("Error loading film into Realm")}
         }
         
         updateUI()
     }
     
-    //TODO: - Fix this now playing update
     func updateNowPlayingFlags() {
         
         if boxOfficeFilms != nil {
             do {
                 try realm.write {
-                    for film in boxOfficeFilms! {
-                        film.isNowPlaying = false   //reset now playing to most recent films
+                    //only save rated films and now playing
+                    if let objectsToDelete = filmDatabase?.filter("isNowPlaying == %@ AND userRating == %@", false, 0) {
+                        realm.delete(objectsToDelete)
+                    }
+                    
+                    for film in boxOfficeFilms! {   //reset now playing Bool to false to check if
+                        film.isNowPlaying = false   //film is still now playing in DuplicateFilmChecker
+                        
                     }
                 }
-            } catch {
-                fatalError("Failed to reset Now Playing flags")
-            }
-            
+            } catch {fatalError("Failed to reset Now Playing flags")}
         }
     }
  

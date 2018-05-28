@@ -128,6 +128,10 @@
 			children = (
 				1804758020AA52BB0090DE98 /* Film.swift */,
 				18E730AC20B5266A0090F1E6 /* SearchHistoryItem.swift */,
+				18E730A620B479090090F1E6 /* MoviegluResponse.swift */,
+				18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */,
+				18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */,
+				1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -136,10 +140,6 @@
 			isa = PBXGroup;
 			children = (
 				1879B18920AD354A007D6B72 /* SearchType.swift */,
-				18E730A620B479090090F1E6 /* MoviegluResponse.swift */,
-				18E730A820B4CA520090F1E6 /* OmdbResponseToS.swift */,
-				18E730AA20B4D9A30090F1E6 /* OmdbIDResponse.swift */,
-				1879B17D20AC9626007D6B72 /* SearchResultOMDB.swift */,
 				1879B17B20ABA419007D6B72 /* RatingControl.swift */,
 				1879B18720AD1F6E007D6B72 /* FilmCreator.swift */,
 				1879B18520AD1E84007D6B72 /* SearchRelevanceChecker.swift */,

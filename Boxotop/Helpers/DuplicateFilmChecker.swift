@@ -13,15 +13,24 @@ class DuplicateFilmChecker {
     
     private let realm = try! Realm()
     
-    func searchDatabaseFor(film: Film) -> Bool {
+    func searchDatabaseFor(film: Film, searchType: SearchType) -> Bool {
         
         let filmDatabase = realm.objects(Film.self)
         
         let predicate = NSPredicate(format: "imdbID == %@", film.imdbID)
         let queryFilm = filmDatabase.filter(predicate)
         
-        if let imdbID = queryFilm.first?.imdbID {
-            return imdbID == film.imdbID
+        if let duplicateFilm = queryFilm.first {
+            
+            if searchType == .boxOffice {
+                do {
+                    try realm.write {
+                        duplicateFilm.isNowPlaying = true   //Film is already in database and still Now Playing
+                    }
+                } catch {fatalError("Error updating duplicate now playing flag")}
+            }
+            
+            return duplicateFilm.imdbID == film.imdbID
         }
             
         return false
