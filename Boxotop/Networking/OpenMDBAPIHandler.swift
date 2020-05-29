@@ -31,7 +31,7 @@ class OpenMDBAPIHandler {
     private let apiKeyQuery = URLQueryItem(name: "apikey", value: "9674d90")
     
     func searchOpenMDB(for movieTitles: [String], isRetry: Bool? = false) {
-    
+    print("titles: \(movieTitles)")
         for movieTitle in movieTitles {
             let apiDelegate = ApiDelegate()
             apiDelegate.dataCompletionHandler = receivedData(data:title:imdbID:callType:hasError:)
@@ -62,15 +62,20 @@ class OpenMDBAPIHandler {
         }
     }
     
-    func loadFromOMDB(with imdbIDs: [String], isRetry: Bool? = false) {
+    func loadFromOMDB(with imdbIDs: [String], isRetry: Bool? = false, isBoxOfficeLoad: Bool) {
         
         for imdbID in imdbIDs {
             let apiDelegate = ApiDelegate()
+            var id = imdbID
+            
+            if isBoxOfficeLoad {
+                id = "tt" + imdbID
+            }
             
             apiDelegate.dataCompletionHandler = receivedData(data:title:imdbID:callType:hasError:)
             apiDelegate.retryHandler = attemptTaskRetry(task:callType:title:imdbID:)
+            apiDelegate.imdbID = id
             
-            apiDelegate.imdbID = imdbID
             apiDelegate.callType = .load
             apiDelegate.isTaskRetry = isRetry
             
@@ -78,7 +83,7 @@ class OpenMDBAPIHandler {
             
             guard let url = NSURLComponents(string: OMDB_URL) else {fatalError("OMDB URL Error")}
             
-            let idQuery = URLQueryItem(name: "i", value: imdbID)
+            let idQuery = URLQueryItem(name: "i", value: id)
             url.queryItems = [apiKeyQuery, idQuery]
             
             guard let convertedURL = url.url else {fatalError("URL could not be converted from NSURL")}
@@ -106,8 +111,8 @@ class OpenMDBAPIHandler {
                     }
                 }
                 
-            } catch {
-                print("OMDB Movie not found or problem with JSON response format")
+            } catch let err {
+                print("error in search: \(err)")
             }
         }
         
@@ -117,13 +122,12 @@ class OpenMDBAPIHandler {
                 let jsonResponse = try JSONDecoder().decode(OmdbIDResponse.self, from: data)
                 
                 if jsonResponse.Response == "True" {
-                  
                     DispatchQueue.main.async {
                         self.delegate?.receivedOMDBLoadResults(result: jsonResponse, imdbID: imdbID!, isError: hasError)
                     }
                 }
-            } catch {
-                print("OMDB Movie not found or problem with JSON response format 2")
+            } catch let err {
+                print("error in mdb api handler: \(err)")
             }
         }
     }
@@ -136,7 +140,7 @@ class OpenMDBAPIHandler {
             self.searchOpenMDB(for: [movieTitle], isRetry: true)
         case .load:
             guard let id = imdbID else {fatalError("imdb id did not get passed back")}
-            self.loadFromOMDB(with: [id], isRetry: true)
+            self.loadFromOMDB(with: [id], isRetry: true, isBoxOfficeLoad: false)
         }
     }
     

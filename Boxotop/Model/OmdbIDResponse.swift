@@ -12,18 +12,18 @@ import Foundation
 
 struct OmdbIDResponse: Decodable {
     
-    let Title: String
-    let Released: String
-    let Director: String
-    let Actors: String
-    let Metascore: String
-    let imdbRating: String
-    let Plot: String
-    let Rated: String
-    let Writer: String
-    let Ratings: [RatingType]
+    let Title: String?
+    let Released: String?
+    let Director: String?
+    let Actors: String?
+    let Metascore: String?
+    let imdbRating: String?
+    let Plot: String?
+    let Rated: String?
+    let Writer: String?
+    let Ratings: [RatingType]?
     let Poster: String?
-    let Response: String
+    let Response: String?
 }
 
 struct RatingType: Decodable {

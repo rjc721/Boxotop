@@ -39,7 +39,7 @@ class ApiDelegate: NSObject, URLSessionDelegate, URLSessionDataDelegate, URLSess
         }
         
         if let compHandler = dataCompletionHandler, let data = myData {
-            
+            print("my data: \(myData)")
             guard let apiCallType = callType else {fatalError("call type not set")}
             
             switch apiCallType {

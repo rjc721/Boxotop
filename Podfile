@@ -6,6 +6,6 @@ target 'Boxotop' do
   use_frameworks!
 
   # Pods for Boxotop
-    pod 'RealmSwift'
+    pod 'RealmSwift', '~> 3.20.0'
     pod 'SVProgressHUD'
 end

@@ -14,14 +14,16 @@ import Foundation
 
 struct MoviegluResponse: Decodable {
     let films: [MoviegluFilm]
-    let count: Int
+//    let count: Int
     let status: MoviegluStatus
 }
 
 struct MoviegluFilm: Decodable {
     let film_name: String
+    let imdb_id: Int?
 }
 
 struct MoviegluStatus: Decodable {
     let state: String
+    let count: Int
 }

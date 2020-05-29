@@ -1,0 +1,4 @@
+${PODS_ROOT}/Target Support Files/Pods-Boxotop/Pods-Boxotop-frameworks.sh
+${BUILT_PRODUCTS_DIR}/Realm/Realm.framework
+${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework
+${BUILT_PRODUCTS_DIR}/SVProgressHUD/SVProgressHUD.framework

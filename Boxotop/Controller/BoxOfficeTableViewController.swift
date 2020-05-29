@@ -6,7 +6,7 @@
 //  Copyright © 2018 Ryan Chingway. All rights reserved.
 //
 //  Use of Movieglu API is Restricted to 75 Requests
-//  If limit is reached, uncomment lines 35 and 271, comment lines 258 through 269
+//  If limit is reached, uncomment lines 33 and 290, comment lines 276 through 288
 //  to use Movies Array as substitute for titles returned from Movieglu
 
 import UIKit
@@ -15,22 +15,22 @@ import SVProgressHUD
 
 class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     
-    let realm = try! Realm()                    //Initiate Realm as database
-    var boxOfficeFilms: Results<Film>?          //Contains movies Now Playing
-    var tableViewDisplayFilms: Results<Film>?   //Contains movies being shown in table
-    var filmDatabase: Results<Film>?            //Complete database
-    var searchHistory: Results<SearchHistoryItem>?  //Search history
+    private let realm = try! Realm()                    //Initiate Realm as database
+    private var boxOfficeFilms: Results<Film>?          //Contains movies Now Playing
+    private var tableViewDisplayFilms: Results<Film>?   //Contains movies being shown in table
+    private var filmDatabase: Results<Film>?            //Complete database
+    private var searchHistory: Results<SearchHistoryItem>?  //Search history
     
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var refreshButton: UIBarButtonItem!
     
-    var searchType: SearchType?
+    private var searchType: SearchType?
     
-    let movieDBAPIHandler = OpenMDBAPIHandler()
+    private let movieDBAPIHandler = OpenMDBAPIHandler()
     
-    let imageCache = NSCache<NSString, UIImage>()
+    private let imageCache = NSCache<NSString, UIImage>()
     
-    //var movies = ["Solo: A Star Wars Story", "Deadpool 2", "Sherlock Gnomes", "Avengers: Infinity War", "Show Dogs", "I Feel Pretty", "Peter Rabbit", "On Chesil Beach", "Life of the Party", "The Little Vampire", "A Quiet Place", "The Greatest Showman", "Duck Duck Goose"]   //If Movieglu API request limit reached
+//    var movies = ["Solo: A Star Wars Story", "Deadpool 2", "Sherlock Gnomes", "Avengers: Infinity War", "Show Dogs", "I Feel Pretty", "Peter Rabbit", "On Chesil Beach", "Life of the Party", "The Little Vampire", "A Quiet Place", "The Greatest Showman", "Duck Duck Goose"]   //If Movieglu API request limit reached
     
     enum TableViewDisplayType {
         case nowPlaying
@@ -39,8 +39,8 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
         case searchResults
     }
     
-    var tableDisplayType: TableViewDisplayType = .nowPlaying
-    var tableTypeBeforeSearch: TableViewDisplayType?
+    private var tableDisplayType: TableViewDisplayType = .nowPlaying
+    private var tableTypeBeforeSearch: TableViewDisplayType?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,7 +68,7 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
         navBar.barTintColor = navBarGreen
         navBar.tintColor = UIColor.black
         navBar.titleTextAttributes = [NSAttributedStringKey.font : UIFont(name: "Futura-Bold", size: 24.0)!]
-        searchBar.barTintColor = navBarGreen
+        searchBar.barTintColor = UIColor.white
     }
     
     func loadDatabase() {
@@ -275,19 +275,21 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
         
         let movieAPIHandler = MoviegluAPIHandler()
 
-        movieAPIHandler.getNowPlayingFilms { (titles, err) in
+        movieAPIHandler.getNowPlayingFilms { (titles, ids, err) in
 
             if err == nil {
                 guard let titles = titles else {fatalError("Titles not returned from Movieglu")}
+                guard let ids = ids else {fatalError("id problems")}
+//                self.movieDBAPIHandler.searchOpenMDB(for: titles)
+                self.movieDBAPIHandler.loadFromOMDB(with: ids, isBoxOfficeLoad: true)
 
-                self.movieDBAPIHandler.searchOpenMDB(for: titles)
 
             } else {
-                fatalError("Movieglu Error: \(String(describing: err))")
+                print("Movieglu Error: \(String(describing: err))")
             }
         }
         
-           //movieDBAPIHandler.searchOpenMDB(for: movies) //If Movieglu API request limit reached
+//           movieDBAPIHandler.searchOpenMDB(for: movies) //If Movieglu API request limit reached
         
     }
     
@@ -296,7 +298,6 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
     func receivedOMDBSearchResults(result: OmdbResponseToS, movieTitle: String, isError: Bool) {
         
         if isError {
-            
             SVProgressHUD.dismiss()
             self.tableView.isUserInteractionEnabled = true
             
@@ -307,22 +308,23 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
             
             switch searchType! {
             case .boxOffice:
-                self.checkForMostRelevant(in: searchResultsArray)
+//                self.checkForMostRelevant(in: searchResultsArray)
+                print("changed the way box office films are found, by id now rather than name")
             case .user:
-                self.movieDBAPIHandler.loadFromOMDB(with: imdbIDsArray)
+                self.movieDBAPIHandler.loadFromOMDB(with: imdbIDsArray, isBoxOfficeLoad: false)
             }
         }
     }
     
     //Only checking relevance on box office search
     //Relevance for User searches is determined by OMDB
-    func checkForMostRelevant(in results: [SearchResultOMDB]) {
-        
-        let searchChecker = SearchRelevanceChecker()
-        let matchingFilm = searchChecker.check(results: results)
-        
-        movieDBAPIHandler.loadFromOMDB(with: [matchingFilm])
-    }
+//    func checkForMostRelevant(in results: [SearchResultOMDB]) {
+//
+//        let searchChecker = SearchRelevanceChecker()
+//        let matchingFilm = searchChecker.check(results: results)
+//
+//        movieDBAPIHandler.loadFromOMDB(with: [matchingFilm])
+//    }
   
     func receivedOMDBLoadResults(result: OmdbIDResponse, imdbID: String, isError: Bool) {
         if isError {
@@ -331,12 +333,12 @@ class BoxOfficeTableViewController: UITableViewController, OpenMovieDBDelegate {
             self.tableView.isUserInteractionEnabled = true
             
         } else {
-            
             let movieCreator = FilmCreator()
             
             guard let type = searchType else {fatalError("Search type not set")}
             
             let newFilm = movieCreator.createFilm(from: result, imdbID: imdbID, searchType: type)
+            
             self.updateRealm(with: newFilm)
         }
     }

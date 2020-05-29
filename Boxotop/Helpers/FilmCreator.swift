@@ -14,20 +14,25 @@ class FilmCreator {
         
         let newFilm = Film()
         
-        newFilm.title = result.Title
-        newFilm.director = result.Director
-        newFilm.cast = result.Actors
-        newFilm.criticRating = result.Metascore
-        newFilm.imdbRating = result.imdbRating
-        newFilm.plot = result.Plot
-        newFilm.ratingMPAA = result.Rated
-        newFilm.releaseDate = result.Released
-        newFilm.writer = result.Writer
+        newFilm.title = result.Title ?? "Title not found"
+        newFilm.director = result.Director ?? "Director not found"
+        newFilm.cast = result.Actors ?? "No actors listed"
+        newFilm.criticRating = result.Metascore ?? "no score"
+        newFilm.imdbRating = result.imdbRating ?? "no rating"
+        newFilm.plot = result.Plot ?? "Plot not shown"
+        newFilm.ratingMPAA = result.Rated ?? "No rating given"
+        newFilm.releaseDate = result.Released ?? "release date unknown"
+        newFilm.writer = result.Writer ?? "Writer not listed"
         newFilm.imdbID = imdbID
         newFilm.isNowPlaying = (searchType == .boxOffice)
     
-        if result.Ratings.count > 1 {
-             newFilm.rottenTomatoesRating = result.Ratings[1].Value!
+        if let ratings = result.Ratings {
+            if ratings.count > 1 {
+                newFilm.rottenTomatoesRating = ratings[1].Value!
+            } else {
+            newFilm.rottenTomatoesRating = "Not Available"
+            }
+             
         } else {
             newFilm.rottenTomatoesRating = "Not Available"
         }
